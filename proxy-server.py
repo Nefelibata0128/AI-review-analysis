@@ -252,7 +252,6 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
             event_queue = queue.Queue()
             self.server.pending_events = event_queue
             self.server.analysis_running = True
-            print(f"SET pending_events id={id(event_queue)} server={id(self.server)}", flush=True)
 
             thread = threading.Thread(
                 target=self._run_analysis_thread,
@@ -302,7 +301,6 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
         event_queue = getattr(self.server, "pending_events", None)
-        print(f"GET pending_events id={id(event_queue) if event_queue else 'None'} server={id(self.server)}", flush=True)
         if event_queue is None:
             self.wfile.write(f"event: error\ndata: {json.dumps({'message': '无进行中的分析'})}\n\n".encode())
             self.wfile.flush()
