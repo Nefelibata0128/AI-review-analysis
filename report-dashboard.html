@@ -17,16 +17,16 @@
    DESIGN SYSTEM — Warm Cream + Glass + Coral
    ============================================================ */
 :root {
-  --canvas: #faf8f5;
-  --ink: #2d2a28;
-  --body: #5c5752;
-  --mute: #8a8580;
+  --canvas: #f7f9fb;
+  --ink: #191c1e;
+  --body: #44474e;
+  --mute: #8d7071;
   --ash: #b8b3ae;
-  --primary: #e84a5f;
-  --primary-hover: #d13a4f;
-  --primary-container: rgba(232,74,95,0.08);
+  --primary: #b21c3a;
+  --primary-hover: #930028;
+  --primary-container: rgba(178,28,58,0.08);
   --accent-green: #5cb878;
-  --accent-red: #d9453c;
+  --accent-red: #ba1a1a;
   --accent-warm: #e8b44a;
   --glass-bg: rgba(255,255,255,0.50);
   --glass-bg-hover: rgba(255,255,255,0.72);
@@ -38,7 +38,7 @@
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-full: 9999px;
-  --sidebar-w: 248px;
+  --sidebar-w: 288px;
   --font: "Inter", "Noto Sans SC", -apple-system, system-ui, "PingFang SC", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 }
@@ -62,32 +62,32 @@ body{font-family:var(--font);background:var(--canvas);color:var(--body);line-hei
 .app{display:flex;height:100vh;position:relative;z-index:1}
 .sidebar{
   width:var(--sidebar-w);flex-shrink:0;height:100vh;
-  background:rgba(250,248,245,0.80);backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  border-right:1px solid var(--glass-border);
-  display:flex;flex-direction:column;padding:24px 20px;overflow-y:auto;
+  background:rgba(247,249,251,0.65);backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border-right:1px solid rgba(255,255,255,0.4);
+  display:flex;flex-direction:column;padding:40px;overflow-y:auto;z-index:50;
 }
-.sb-brand{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:28px;display:flex;align-items:center;gap:8px}
+.sb-brand{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:40px;display:flex;align-items:center;gap:8px}
 .sb-brand i{width:22px;height:22px;color:var(--primary)}
-.sb-nav{list-style:none;flex:1}
-.sb-nav li{margin-bottom:4px}
+.sb-nav{list-style:none;flex:1;display:flex;flex-direction:column;gap:8px}
 .sb-nav a{
-  display:flex;align-items:center;gap:10px;padding:10px 14px;
-  border-radius:var(--radius-md);font-size:13px;font-weight:500;
-  color:var(--body);text-decoration:none;transition:all .15s;
+  display:flex;align-items:center;gap:16px;padding:16px 24px;
+  border-radius:12px;font-size:12px;font-weight:600;
+  color:var(--mute);text-decoration:none;transition:all .3s;
 }
-.sb-nav a:hover{background:var(--primary-container);color:var(--primary)}
-.sb-nav a.active{background:var(--primary-container);color:var(--primary);font-weight:600}
-.sb-nav a i{width:16px;height:16px;flex-shrink:0}
-.sb-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--glass-border)}
+.sb-nav a:hover{color:var(--ink);background:rgba(0,0,0,0.03)}
+.sb-nav a.active{background:rgba(178,28,58,0.10);color:var(--primary);font-weight:600;transform:scale(0.98)}
+.sb-nav a:active{transform:scale(0.95)}
+.sb-nav a i{width:18px;height:18px;flex-shrink:0}
+.sb-footer{margin-top:auto;padding-top:24px;border-top:1px solid rgba(255,255,255,0.2)}
 .sb-footer button{
-  width:100%;padding:8px 14px;border:1px solid var(--glass-border);
-  border-radius:var(--radius-md);background:var(--glass-bg);
-  font-family:var(--font);font-size:12px;font-weight:500;color:var(--body);
-  cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s;
+  width:100%;padding:16px 24px;border:none;
+  border-radius:12px;background:transparent;
+  font-family:var(--font);font-size:12px;font-weight:600;color:var(--mute);
+  cursor:pointer;display:flex;align-items:center;gap:16px;transition:all .3s;
 }
-.sb-footer button:hover{background:var(--primary-container);border-color:var(--primary);color:var(--primary)}
-.sb-footer button i{width:14px;height:14px}
+.sb-footer button:hover{color:var(--ink);background:rgba(0,0,0,0.03)}
+.sb-footer button i{width:18px;height:18px}
 
 /* Main */
 .main{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 28px 40px;position:relative;z-index:1}
@@ -95,87 +95,76 @@ body{font-family:var(--font);background:var(--canvas);color:var(--body);line-hei
 .main::-webkit-scrollbar-thumb{background:var(--ash);border-radius:2px}
 
 /* Top Bar */
-.topbar{
-  position:sticky;top:0;z-index:10;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 0;margin-bottom:16px;
-  background:rgba(250,248,245,0.75);backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-}
-.topbar-l{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--ink)}
-.topbar-r{display:flex;gap:8px}
-.topbar-r button{
-  padding:6px 14px;border:1px solid var(--glass-border);
-  border-radius:var(--radius-sm);background:var(--glass-bg);
-  font-family:var(--font);font-size:12px;font-weight:500;color:var(--body);
-  cursor:pointer;transition:all .15s;
-}
-.topbar-r button:hover{background:var(--primary-container);border-color:var(--primary);color:var(--primary)}
+.topbar{position:sticky;top:0;z-index:10}
 
 /* Scene Tabs */
-.scene-tabs{display:flex;gap:8px;margin-bottom:18px}
+.scene-tabs{display:flex;gap:16px;padding:8px;background:rgba(255,255,255,0.65);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.4);border-radius:16px;box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.8);margin-bottom:0}
 .scene-tab{
-  flex:1;padding:12px 18px;border:1px solid var(--glass-border);
-  border-radius:var(--radius-md);background:var(--glass-bg);
-  font-family:var(--font);font-size:14px;font-weight:500;color:var(--body);
-  cursor:pointer;transition:all .2s;text-align:center;
+  padding:12px 32px;border:none;border-radius:8px;
+  background:rgba(255,255,255,0.80);backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.4);
+  font-family:var(--font);font-size:14px;font-weight:700;color:var(--mute);
+  cursor:pointer;transition:all .3s;
 }
-.scene-tab:hover{border-color:var(--primary);background:var(--primary-container)}
-.scene-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.scene-tab:hover{background:var(--primary-container);color:var(--primary)}
+.scene-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 1px 3px rgba(0,0,0,0.12)}
 
 /* Upload */
-.upload-zone.glass{padding:20px 24px;margin-bottom:18px}
-.upload-zone h3{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:4px}
-.upload-zone .uz-sub{font-size:12px;color:var(--mute);margin-bottom:16px}
-.upload-cards{display:flex;gap:14px;flex-wrap:wrap}
+.upload-head{margin-bottom:40px}
+.upload-head h2{font-size:40px;font-weight:700;color:var(--ink);line-height:1.2;letter-spacing:-0.02em}
+.upload-head p{font-size:16px;color:var(--mute);margin-top:8px}
+.upload-cards{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px}
 .upload-card{
-  flex:1;min-width:200px;padding:18px 20px;border:1.5px dashed var(--ash);
-  border-radius:var(--radius-md);background:rgba(255,255,255,0.35);
-  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-  cursor:pointer;transition:all .2s;text-align:center;position:relative;
+  min-height:320px;padding:32px;border:2px dashed rgba(255,255,255,0.4);
+  border-radius:16px;background:rgba(255,255,255,0.65);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.8),0 8px 32px rgba(0,0,0,0.04);
+  cursor:pointer;transition:all .3s;text-align:center;position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
-.upload-card:hover{border-color:var(--primary);background:var(--primary-container)}
+.upload-card:hover{border-style:solid;background:rgba(178,28,58,0.05);border-color:var(--primary)}
 .upload-card.has-file{border-style:solid;border-color:var(--primary);background:var(--primary-container)}
-.upload-card .uc-icon{font-size:28px;margin-bottom:8px;display:block}
-.upload-card .uc-label{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:3px}
-.upload-card .uc-hint{font-size:11px;color:var(--mute)}
-.upload-card .uc-name{font-size:12px;color:var(--primary);font-weight:500;margin-top:6px;display:none}
+.upload-card .uc-icon{width:64px;height:64px;border-radius:16px;background:rgba(178,28,58,0.10);display:flex;align-items:center;justify-content:center;margin-bottom:24px;transition:transform .3s}
+.upload-card:hover .uc-icon{transform:scale(1.1)}
+.upload-card .uc-icon i{width:36px;height:36px;color:var(--primary)}
+.upload-card .uc-label{font-size:20px;font-weight:600;color:var(--ink);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.upload-card .uc-hint{font-size:14px;color:var(--mute)}
+.upload-card .uc-name{font-size:14px;color:var(--primary);font-weight:500;margin-top:8px;display:none}
 .upload-card.has-file .uc-name{display:block}
 .upload-card.has-file .uc-hint{display:none}
 .upload-card input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
 .uz-badge{
-  display:inline-block;padding:2px 10px;border-radius:var(--radius-full);
-  font-size:10px;font-weight:600;margin-left:8px;
+  display:inline-block;padding:2px 8px;border-radius:var(--radius-full);
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
 }
-.uz-badge.req{background:rgba(232,74,95,0.1);color:var(--primary)}
-.uz-badge.opt{background:rgba(92,184,120,0.1);color:var(--accent-green)}
+.uz-badge.req{background:rgba(178,28,58,0.20);color:var(--primary)}
+.uz-badge.opt{background:var(--glass-border);color:var(--mute)}
+@media(max-width:768px){.upload-cards{grid-template-columns:1fr}}
 
 /* Mode Selector */
-.mode-sel{display:flex;gap:8px;margin:14px 0}
+.mode-sel{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:48px}
 .mode-opt{
-  flex:1;padding:14px 16px;border:1px solid var(--glass-border);
-  border-radius:var(--radius-md);cursor:pointer;transition:all .2s;
-  background:var(--glass-bg);
+  position:relative;padding:32px;border-radius:16px;cursor:pointer;transition:all .3s;
+  background:rgba(255,255,255,0.65);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.4);
+  box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.8),0 8px 32px rgba(0,0,0,0.04);
 }
-.mode-opt:hover{border-color:var(--primary)}
-.mode-opt:has(input:checked){border-color:var(--primary);background:var(--primary-container)}
+.mode-opt:hover{background:rgba(255,255,255,0.75);box-shadow:0 20px 48px rgba(0,0,0,0.1)}
+.mode-opt:has(input:checked){background:rgba(178,28,58,0.05);border-color:var(--primary);box-shadow:0 8px 20px -4px rgba(178,28,58,0.4)}
 .mode-opt input{display:none}
-.mode-opt .mo-label{font-size:14px;font-weight:600;color:var(--ink);display:block}
-.mode-opt .mo-desc{font-size:11px;color:var(--mute);margin-top:3px;display:block}
+.mode-opt .mo-icon{width:24px;height:24px;color:var(--primary);margin-bottom:12px}
+.mode-opt .mo-label{font-size:20px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.mode-opt .mo-desc{font-size:14px;color:var(--mute)}
+.mode-opt .mo-check{position:absolute;top:16px;right:16px;width:24px;height:24px;color:var(--primary);opacity:0;transition:opacity .3s}
+.mode-opt:has(input:checked) .mo-check{opacity:1}
+@media(max-width:768px){.mode-sel{grid-template-columns:1fr}}
 
 /* Buttons */
-.btn{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:12px 28px;border:none;border-radius:var(--radius-md);
-  font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;
-  transition:all .2s;
-}
-.btn-primary{background:var(--primary);color:#fff;width:100%;justify-content:center}
-.btn-primary:hover{background:var(--primary-hover)}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed}
-.btn-primary .spinner{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
-.btn-primary.loading .spinner{display:block}
-.btn-primary.loading .btn-label{display:none}
+.btn .spinner{display:none;width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+.btn.loading .spinner{display:block}
+.btn.loading .btn-label{display:none}
+.btn:hover{transform:scale(1.02)}.btn:active{transform:scale(0.98)}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* Status Bar */
@@ -328,51 +317,65 @@ body{font-family:var(--font);background:var(--canvas);color:var(--body);line-hei
   </aside>
 
   <!-- Main -->
-  <main class="main" id="mainArea"><div class="topbar" id="topBar" style="display:none">
-      <div class="topbar-l"><i data-lucide="file-text" style="width:18px;height:18px;color:var(--primary)"></i> <span id="topFile"></span></div>
-      <div class="topbar-r">
-        <button onclick="exportImage()"><i data-lucide="image" style="width:14px;height:14px"></i> PNG</button>
-        <button onclick="copyMarkdown()"><i data-lucide="copy" style="width:14px;height:14px"></i> 复制 MD</button>
-        <button class="btn" style="padding:6px 14px;font-size:12px;background:var(--primary);color:#fff;border:none" onclick="startNew()">重新上传</button>
+  <main class="main" id="mainArea">
+    <!-- Header with Scene Tabs -->
+    <header style="display:flex;align-items:center;gap:24px;width:100%;margin-bottom:48px" id="topBar">
+      <nav class="scene-tabs" id="sceneTabs">
+        <button class="scene-tab active" data-scene="feedback" onclick="switchScene('feedback')">用户反馈分析</button>
+        <button class="scene-tab" data-scene="competitor" onclick="switchScene('competitor')">竞品分析</button>
+      </nav>
+      <div style="display:flex;gap:12px;margin-left:auto">
+        <button class="w-12 h-12 flex items-center justify-center glass rounded-xl" onclick="exportImage()" style="color:var(--mute)"><i data-lucide="image" style="width:20px;height:20px"></i></button>
+        <button class="w-12 h-12 flex items-center justify-center glass rounded-xl" onclick="copyMarkdown()" style="color:var(--mute)"><i data-lucide="copy" style="width:20px;height:20px"></i></button>
+        <button class="btn" style="padding:12px 24px;font-size:14px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-weight:700;cursor:pointer" onclick="startNew()">重新上传</button>
       </div>
-    </div>
-
-    <!-- Scene Tabs -->
-    <div class="scene-tabs" id="sceneTabs">
-      <button class="scene-tab active" data-scene="feedback" onclick="switchScene('feedback')">用户反馈分析</button>
-      <button class="scene-tab" data-scene="competitor" onclick="switchScene('competitor')">竞品分析</button>
-    </div>
+    </header>
 
     <!-- Upload Zone -->
-    <div class="upload-zone glass" id="uploadZone">
-      <h3 id="uzTitle">上传分析文件</h3>
-      <p class="uz-sub">支持 .txt / .docx / .md / .xlsx / .csv 格式</p>
+    <div id="uploadZone">
+      <div class="upload-head">
+        <h2 id="uzTitle">上传分析文件</h2>
+        <p>支持 .txt / .docx / .md / .xlsx / .csv 格式，进行智能批量处理。</p>
+      </div>
       <div class="upload-cards">
         <label class="upload-card" id="card1">
-          <span class="uc-icon">📄</span>
-          <span class="uc-label" id="lbl1">用户评论数据</span>
-          <span class="uc-hint">.txt / .xlsx / .csv 表格数据</span>
+          <div class="uc-icon"><i data-lucide="file-text"></i></div>
+          <div class="uc-label" id="lbl1">用户评论数据 <span class="uz-badge req">必填</span></div>
+          <div class="uc-hint">.txt / .xlsx / .csv 表格数据</div>
           <span class="uc-name" id="fn1"></span>
-          <span class="uz-badge req">必填</span>
           <input type="file" id="file1" accept=".txt,.md,.docx,.xlsx,.xls,.csv" onchange="onFilePicked(this,'card1','fn1')">
         </label>
         <label class="upload-card" id="card2">
-          <span class="uc-icon">📋</span>
-          <span class="uc-label" id="lbl2">产品背景文档</span>
-          <span class="uc-hint">.docx / .md / .xlsx 产品介绍</span>
+          <div class="uc-icon"><i data-lucide="package"></i></div>
+          <div class="uc-label" id="lbl2">产品背景文档 <span class="uz-badge opt">可选</span></div>
+          <div class="uc-hint">.docx / .md / .xlsx 产品介绍</div>
           <span class="uc-name" id="fn2"></span>
-          <span class="uz-badge opt">可选</span>
           <input type="file" id="file2" accept=".txt,.md,.docx,.xlsx,.xls,.csv" onchange="onFilePicked(this,'card2','fn2')">
         </label>
       </div>
       <div class="mode-sel" id="modeSel">
-        <label class="mode-opt"><input type="radio" name="mode" value="multi" checked><span class="mo-label">深度分析（多 Agent）</span><span class="mo-desc">5 步推进，进度可见，更精准</span></label>
-        <label class="mode-opt"><input type="radio" name="mode" value="single"><span class="mo-label">快速分析（单工作流）</span><span class="mo-desc">一次完成，速度更快</span></label>
+        <label class="mode-opt">
+          <input type="radio" name="mode" value="multi" checked>
+          <i data-lucide="brain" class="mo-icon"></i>
+          <div class="mo-label">深度分析（多 Agent）</div>
+          <div class="mo-desc">5 步协作推理流程，进度可见，获得最高精度的结果。</div>
+          <i data-lucide="check-circle" class="mo-check"></i>
+        </label>
+        <label class="mode-opt">
+          <input type="radio" name="mode" value="single">
+          <i data-lucide="zap" class="mo-icon"></i>
+          <div class="mo-label">快速分析（单工作流）</div>
+          <div class="mo-desc">单次摘要生成，秒级完成，为速度优化。</div>
+          <i data-lucide="check-circle" class="mo-check"></i>
+        </label>
       </div>
-      <button class="btn btn-primary" id="btnGo" onclick="run()">
-        <span class="btn-label">开始分析</span>
-        <span class="spinner"></span>
-      </button>
+      <div style="display:flex;justify-content:center">
+        <button class="btn" id="btnGo" onclick="run()" style="background:var(--primary);color:#fff;font-weight:700;font-size:24px;padding:24px 64px;border-radius:16px;border:none;cursor:pointer;box-shadow:0 8px 20px -4px rgba(178,28,58,0.4);display:flex;align-items:center;gap:16px;transition:all .2s;font-family:var(--font)">
+          <i data-lucide="play" style="width:28px;height:28px"></i>
+          <span class="btn-label">开始分析</span>
+          <span class="spinner"></span>
+        </button>
+      </div>
     </div>
 
     <!-- Status Bar -->
@@ -433,7 +436,7 @@ const AGENTS=[
     x:Math.random()*innerWidth,y:Math.random()*innerHeight,
     vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,
     r:Math.random()*2+.6,
-    c:Math.random()>.7?[232,74,95]:[249,166,108]
+    c:Math.random()>.7?[178,28,58]:[249,166,108]
   });
   function dr(){
     ctx.clearRect(0,0,c.width,c.height);
