@@ -13,6 +13,7 @@ AI评论分析平台 v3.0 — HTTP 代理服务器
 用法: python proxy-server.py
 """
 import http.server
+import socketserver
 import urllib.request
 import urllib.error
 import json
@@ -25,7 +26,7 @@ import threading
 import queue
 from pathlib import Path
 
-PORT = 8091
+PORT = 3000
 DIFY_BASE = "https://api.dify.ai/v1"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
 
@@ -158,6 +159,7 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
             self.send_error(404)
 
     def do_POST(self):
+        print(f"DEBUG: do_POST path={self.path}", flush=True)
         if self.path.startswith("/api/orch/run"):
             self._handle_orch_run()
         elif self.path.startswith("/api/"):
@@ -211,7 +213,9 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
 
     def _handle_orch_run(self):
         """POST /api/orch/run — 接收双文件上传，启动多 Agent 分析"""
+        print("DEBUG: _handle_orch_run called", flush=True)
         content_type = self.headers.get("Content-Type", "")
+        print(f"DEBUG: content_type={content_type}", flush=True)
 
         try:
             if "multipart/form-data" in content_type:
@@ -359,8 +363,11 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         print(f"[{self.log_date_time_string()}] {args[0]}")
 
 
+class ThreadedServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+    daemon_threads = True
+
 if __name__ == "__main__":
-    server = http.server.HTTPServer(("0.0.0.0", PORT), ProxyHandler)
+    server = ThreadedServer(("0.0.0.0", PORT), ProxyHandler)
     print(f"  AI评论分析平台 v3.0")
     print(f"  本地地址: http://localhost:{PORT}")
     print(f"  API 代理:    /api/* -> {DIFY_BASE}/*")
