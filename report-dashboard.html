@@ -346,23 +346,23 @@ body{font-family:var(--font);background:var(--canvas);color:var(--body);line-hei
     <!-- Upload Zone -->
     <div class="upload-zone glass" id="uploadZone">
       <h3 id="uzTitle">上传分析文件</h3>
-      <p class="uz-sub">支持 .txt / .docx / .md 格式的文档</p>
+      <p class="uz-sub">支持 .txt / .docx / .md / .xlsx / .csv 格式</p>
       <div class="upload-cards">
         <label class="upload-card" id="card1">
           <span class="uc-icon">📄</span>
           <span class="uc-label" id="lbl1">用户评论数据</span>
-          <span class="uc-hint">.txt Markdown 表格格式</span>
+          <span class="uc-hint">.txt / .xlsx / .csv 表格数据</span>
           <span class="uc-name" id="fn1"></span>
           <span class="uz-badge req">必填</span>
-          <input type="file" id="file1" accept=".txt,.md,.docx" onchange="onFilePicked(this,'card1','fn1')">
+          <input type="file" id="file1" accept=".txt,.md,.docx,.xlsx,.xls,.csv" onchange="onFilePicked(this,'card1','fn1')">
         </label>
         <label class="upload-card" id="card2">
           <span class="uc-icon">📋</span>
           <span class="uc-label" id="lbl2">产品背景文档</span>
-          <span class="uc-hint">.docx / .md 产品介绍或 PRD</span>
+          <span class="uc-hint">.docx / .md / .xlsx 产品介绍</span>
           <span class="uc-name" id="fn2"></span>
           <span class="uz-badge opt">可选</span>
-          <input type="file" id="file2" accept=".txt,.md,.docx" onchange="onFilePicked(this,'card2','fn2')">
+          <input type="file" id="file2" accept=".txt,.md,.docx,.xlsx,.xls,.csv" onchange="onFilePicked(this,'card2','fn2')">
         </label>
       </div>
       <div class="mode-sel" id="modeSel">
@@ -519,9 +519,12 @@ async function run(){
 
   try{
     if(mode==='multi'){
-      let t1=await f1.text(),t2=f2?await f2.text():'';
+      // 统一走 FormData，proxy 端自动识别 .txt/.docx/.xlsx 并解析
+      let fd=new FormData();
+      fd.append('review_file',f1);
+      if(f2)fd.append('bg_file',f2);
       setStatus(true,'启动多 Agent 分析...');
-      initTL();await runMulti(t1,t2);
+      initTL();await runMultiFD(fd);
     }else{
       if(!f2){toast('快速模式需要上传产品背景文档');btn.disabled=false;btn.classList.remove('loading');return}
       setStatus(true,'上传文件中...');
@@ -546,6 +549,21 @@ async function run(){
 async function runMulti(reviewText,bgText){
   let mode=scene==='competitor'?'competitor':'feedback';
   await fetch(BASE+'/orch/run?mode='+mode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_text:reviewText,bg_text:bgText})});
+  return new Promise((resolve,reject)=>{
+    let es=new EventSource(BASE+'/orch/events');
+    es.addEventListener('agent_started',e=>{let d=JSON.parse(e.data);updTL(d.agent,'run',d.message||'执行中...')});
+    es.addEventListener('agent_completed',e=>{let d=JSON.parse(e.data);updTL(d.agent,'ok','完成',d.duration_ms)});
+    es.addEventListener('workflow_completed',e=>{es.close();let d=JSON.parse(e.data);
+      setStatus(true,'分析完成','done');let out=d.outputs;
+      ['Preprocessor','SubjectivityFilter','FiveDimExtractor','CrossValidator','BusinessAnalyzer'].forEach(k=>{if(out[k])agentResults[k]=out[k]});
+      allData=out;renderAll(out,out.conclusion_markdown||'');resolve(out)});
+    es.addEventListener('error',e=>{es.close();updTL(e.data?JSON.parse(e.data).agent:'','err',e.data?JSON.parse(e.data).message:'出错');reject(new Error('分析出错'))});
+  });
+}
+
+async function runMultiFD(fd){
+  let mode=scene==='competitor'?'competitor':'feedback';
+  await fetch(BASE+'/orch/run?mode='+mode,{method:'POST',body:fd});
   return new Promise((resolve,reject)=>{
     let es=new EventSource(BASE+'/orch/events');
     es.addEventListener('agent_started',e=>{let d=JSON.parse(e.data);updTL(d.agent,'run',d.message||'执行中...')});

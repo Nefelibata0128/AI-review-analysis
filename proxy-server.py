@@ -25,7 +25,7 @@ import threading
 import queue
 from pathlib import Path
 
-PORT = 8080
+PORT = 8090
 DIFY_BASE = "https://api.dify.ai/v1"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
 
@@ -41,6 +41,30 @@ def parse_docx(file_data: bytes) -> str:
     doc = Document(io.BytesIO(file_data))
     paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
     return "\n\n".join(paragraphs)
+
+
+def parse_xlsx(file_data: bytes) -> str:
+    """解析 .xlsx/.xls 文件内容为 Markdown 表格文本"""
+    from openpyxl import load_workbook
+    wb = load_workbook(io.BytesIO(file_data), read_only=True, data_only=True)
+    parts = []
+    for sheet_name in wb.sheetnames:
+        ws = wb[sheet_name]
+        rows = list(ws.iter_rows(values_only=True))
+        if not rows:
+            continue
+        if len(wb.sheetnames) > 1:
+            parts.append(f"## {sheet_name}")
+        # 转为 Markdown 表格
+        header = [str(c) if c is not None else "" for c in rows[0]]
+        parts.append("| " + " | ".join(header) + " |")
+        parts.append("|" + "|".join(["---"] * len(header)) + "|")
+        for row in rows[1:]:
+            cells = [str(c) if c is not None else "" for c in row]
+            parts.append("| " + " | ".join(cells) + " |")
+        parts.append("")
+    wb.close()
+    return "\n".join(parts)
 
 
 def handle_file_upload(form: dict) -> tuple[str, str]:
@@ -60,6 +84,8 @@ def handle_file_upload(form: dict) -> tuple[str, str]:
                 filename = (item.filename or "").lower()
                 if filename.endswith(".docx"):
                     review_text = parse_docx(data)
+                elif filename.endswith((".xlsx", ".xls")):
+                    review_text = parse_xlsx(data)
                 else:
                     review_text = data.decode("utf-8", errors="replace")
             elif isinstance(item, (str, bytes)):
@@ -74,6 +100,8 @@ def handle_file_upload(form: dict) -> tuple[str, str]:
                 filename = (item.filename or "").lower()
                 if filename.endswith(".docx"):
                     bg_text = parse_docx(data)
+                elif filename.endswith((".xlsx", ".xls")):
+                    bg_text = parse_xlsx(data)
                 else:
                     bg_text = data.decode("utf-8", errors="replace")
             elif isinstance(item, (str, bytes)):
