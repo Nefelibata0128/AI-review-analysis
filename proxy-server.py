@@ -224,6 +224,11 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         """POST /api/orch/run — 接收双文件上传，启动多 Agent 分析"""
         content_type = self.headers.get("Content-Type", "")
 
+        # 防止重复启动：如果已有进行中的分析，拒绝新请求
+        if getattr(self.server, "analysis_running", False):
+            self._send(409, json.dumps({"error": "已有分析正在进行中，请等待完成"}).encode(), "application/json")
+            return
+
         try:
             if "multipart/form-data" in content_type:
                 content_length = int(self.headers.get("Content-Length", 0))
@@ -246,10 +251,11 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
             # 在后台线程中运行分析，结果通过 SSE 事件队列推送
             event_queue = queue.Queue()
             self.server.pending_events = event_queue
+            self.server.analysis_running = True
 
             thread = threading.Thread(
                 target=self._run_analysis_thread,
-                args=(review_text, bg_text, mode, event_queue),
+                args=(review_text, bg_text, mode, event_queue, self.server),
                 daemon=True,
             )
             thread.start()
@@ -262,7 +268,7 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         except Exception as e:
             self._send(500, json.dumps({"error": str(e)}).encode(), "application/json")
 
-    def _run_analysis_thread(self, review_text: str, bg_text: str, mode: str, event_queue: queue.Queue):
+    def _run_analysis_thread(self, review_text: str, bg_text: str, mode: str, event_queue: queue.Queue, server):
         """后台线程：运行编排器，将事件推送到队列"""
         from orchestrator import Orchestrator
 
@@ -280,7 +286,8 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
             }
             event_queue.put(error_event)
         finally:
-            event_queue.put(None)  # 结束信号
+            event_queue.put(None)
+            server.analysis_running = False
 
     def _handle_sse_events(self):
         """GET /api/orch/events — SSE 流式推送编排进度"""
