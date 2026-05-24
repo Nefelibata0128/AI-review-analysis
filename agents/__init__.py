@@ -66,9 +66,8 @@ def call_deepseek(
     ]
 
     kwargs = {"model": model, "messages": messages, "temperature": temperature}
-
-    if mcp_tools:
-        kwargs["tools"] = [{"type": "function", "function": {"name": t, "description": f"调用 {t} 工具"}} for t in mcp_tools]
+    # 注意：mcp_tools 是 MCP Server 上的独立工具，不应作为 OpenAI function calling 传入。
+    # 传入 tools 会导致模型进入工具调用模式，返回 tool_calls 而非直接 JSON 输出。
 
     try:
         response = client.chat.completions.create(**kwargs)
