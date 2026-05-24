@@ -89,7 +89,7 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         if self.path in ("/", "/index.html"):
             html_path = os.path.join(os.path.dirname(__file__), "report-dashboard.html")
             if not os.path.exists(html_path):
-                self._send(200, b"<h1>AI评论分析平台 v3.0</h1><p>report-dashboard.html not found</p>", "text/html; charset=utf-8")
+                self._send(200, "<h1>AI评论分析平台 v3.0</h1><p>report-dashboard.html not found</p>".encode("utf-8"), "text/html; charset=utf-8")
                 return
             with open(html_path, "r", encoding="utf-8") as f:
                 html = f.read()

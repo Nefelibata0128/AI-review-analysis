@@ -232,4 +232,6 @@ def run_competitor_analysis(competitor_info: str, product_bg: str = "") -> dict:
 # ============================================================
 
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http", host="0.0.0.0", port=8081)
+    mcp.settings.host = "0.0.0.0"
+    mcp.settings.port = 8081
+    mcp.run(transport="streamable-http")
