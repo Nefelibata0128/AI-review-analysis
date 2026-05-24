@@ -1,0 +1,2550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户反馈分析报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Hanken+Grotesk:wght@600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+<style>
+  :root {
+    /* Surface / Background */
+    --surface: #f7f9fc;
+    --surface-card: #ffffff;
+    --surface-doc: #fbfcfe;
+    --surface-soft: #e9ecf1;
+    --surface-container-low: #f3f5f8;
+    --surface-container-high: #e0e3e6;
+    --surface-dark: #2d3133;
+    /* Text / Ink */
+    --ink: #1a1c1e;
+    --body: #44474e;
+    --charcoal: #1a1c1e;
+    --mute: #5e6269;
+    --ash: #747880;
+    --stone: #90949c;
+    --on-dark: #ffffff;
+    --on-inverse: rgba(255,255,255,0.88);
+    /* Borders */
+    --hairline: #d0d4db;
+    --hairline-soft: #e3e6eb;
+    --outline-variant: #c2c6d8;
+    /* Primary / Brand */
+    --primary: #0050cb;
+    --primary-hover: #003da6;
+    --primary-pressed: #002d7a;
+    --primary-container: #e8f0fe;
+    --on-primary: #ffffff;
+    --on-primary-container: #001d36;
+    /* Warning (replaces old --primary-active misuse) */
+    --warning: #e37400;
+    --warning-soft: #fef7e0;
+    /* Accent */
+    --accent-blue: #0050cb;
+    --accent-blue-soft: #e8f0fe;
+    --accent-red: #d93025;
+    --accent-red-soft: #fce8e6;
+    --accent-green: #1e8e3e;
+    --accent-green-soft: #e6f4ea;
+    --accent-purple: #7c44a6;
+    --accent-purple-soft: #f3e8fd;
+    --link-blue: #0050cb;
+    /* Shadows */
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+    --shadow-card-hover: 0 1px 2px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.06);
+    --shadow-fab: 0 4px 16px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08);
+    --shadow-modal: 0 8px 40px rgba(0,0,0,0.14);
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
+    /* Spacing */
+    --section: 80px;
+    --sp-xxl: 32px;
+    --sp-xl: 24px;
+    --sp-lg: 16px;
+    --sp-md: 12px;
+    --sp-sm: 8px;
+    --sp-xs: 4px;
+    --sp-xxs: 2px;
+    /* Sidebar */
+    --sidebar-width: 256px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Inter", -apple-system, system-ui, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--surface);
+    color: var(--body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-weight: 400;
+    height: 100vh; overflow: hidden;
+  }
+
+  /* ====== App Shell ====== */
+  .app-shell {
+    display: flex;
+    height: 100vh;
+  }
+
+  /* ====== Left Sidebar ====== */
+  .sidebar {
+    width: var(--sidebar-width); flex-shrink: 0;
+    height: 100vh;
+    background: var(--surface-dark);
+    display: flex; flex-direction: column;
+    padding: 28px 0;
+  }
+  .sidebar-brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 24px; margin-bottom: 32px;
+    font-family: "Hanken Grotesk", "Inter", sans-serif;
+    font-size: 16px; font-weight: 600; color: var(--on-dark);
+    letter-spacing: -0.3px; white-space: nowrap;
+    text-decoration: none;
+  }
+  .sidebar-brand .sb-icon { font-size: 22px; }
+  .sidebar-divider {
+    height: 1px; background: rgba(255,255,255,0.08);
+    margin: 0 20px 12px;
+  }
+  .sidebar-ctx {
+    padding: 12px 24px;
+    margin-bottom: 4px;
+  }
+  .ctx-label {
+    font-family: "JetBrains Mono", "Inter", monospace;
+    font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.45);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .ctx-files {
+    display: block; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.60);
+    margin-top: 4px; line-height: 1.45;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .sidebar-nav {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 0 12px;
+  }
+  .sidebar-nav a {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.65);
+    text-decoration: none; transition: all .15s;
+    padding: 10px 12px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    border-left: 4px solid transparent;
+    white-space: nowrap;
+  }
+  .sidebar-nav a:hover {
+    color: var(--on-dark);
+    background: rgba(255,255,255,0.06);
+  }
+  .sidebar-nav a.active {
+    color: var(--on-dark);
+    background: rgba(0,80,203,0.15);
+    border-left-color: var(--primary);
+  }
+  .sidebar-nav .sn-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; opacity: .5; flex-shrink: 0;
+  }
+  a.active .sn-dot { opacity: 1; color: var(--primary); }
+  .sidebar-footer {
+    margin-top: auto; padding: 0 16px;
+  }
+  .export-dropdown { position: relative; }
+  .sidebar-export {
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    padding: 7px 16px;
+    background: transparent;
+    color: rgba(255,255,255,0.72);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--radius-md);
+    cursor: pointer; transition: all .2s, transform .2s;
+    white-space: nowrap; width: 100%;
+  }
+  .sidebar-export:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--on-dark);
+    border-color: rgba(255,255,255,0.25);
+  }
+  .export-menu {
+    display: none; position: absolute; bottom: 100%; left: 0; right: 0;
+    margin-bottom: 4px;
+    background: var(--surface-dark);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: var(--radius-md);
+    padding: 4px; z-index: 200;
+  }
+  .export-menu.open { display: block; }
+  .export-menu button {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.65);
+    background: transparent; border: none; border-radius: var(--radius-sm);
+    padding: 7px 10px; cursor: pointer; transition: all .15s;
+  }
+  .export-menu button:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--on-dark);
+  }
+  .sidebar-new-btn {
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    padding: 6px 14px; margin-top: 8px;
+    background: transparent;
+    color: var(--primary);
+    border: 1px solid rgba(0,80,203,0.35);
+    border-radius: var(--radius-md);
+    cursor: pointer; transition: all .2s;
+    white-space: nowrap; width: 100%;
+  }
+  .sidebar-new-btn:hover {
+    background: rgba(0,80,203,0.15);
+    color: var(--on-dark);
+  }
+
+  /* ====== Top Bar ====== */
+  .top-bar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px; margin: 0 -24px;
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--hairline-soft);
+    min-height: 52px;
+  }
+  .top-bar-left {
+    display: flex; align-items: center; gap: 10px; overflow: hidden;
+  }
+  .top-bar-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px;
+    background: var(--surface-container-low);
+    border-radius: var(--radius-full);
+    font-size: 12px; font-weight: 500; color: var(--mute);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 200px;
+  }
+  .top-bar-right {
+    display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+  }
+  .top-bar-reupload {
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    padding: 6px 14px;
+    background: transparent;
+    color: var(--primary);
+    border: 1px solid rgba(0,80,203,0.25);
+    border-radius: var(--radius-full);
+    cursor: pointer; transition: all .15s;
+    white-space: nowrap;
+  }
+  .top-bar-reupload:hover {
+    background: var(--primary-container);
+    border-color: var(--primary);
+  }
+
+  /* ====== Main Content Area ====== */
+  .main-area {
+    flex: 1;
+    overflow-y: auto; overflow-x: hidden;
+    padding: 0 24px 40px;
+    scroll-behavior: smooth;
+  }
+
+  /* ====== Remove old Top Nav (replaced by sidebar) ====== */
+
+  /* ====== Upload Zone (compact, collapsible) ====== */
+  .upload-zone {
+    overflow: hidden;
+    max-height: 200px;
+    transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.3s ease;
+    opacity: 1;
+    margin-top: 16px;
+    margin-bottom: 4px;
+  }
+  .upload-zone.dismissed {
+    max-height: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    opacity: 0;
+    pointer-events: none;
+    padding: 0;
+  }
+  .upload-inner {
+    display: flex; align-items: center; justify-content: center; gap: var(--sp-lg);
+    padding: 20px 0;
+    flex-wrap: wrap;
+  }
+  .upload-zone.collapsed .upload-inner {
+    padding: 10px 0;
+    gap: var(--sp-md);
+  }
+  .upload-card {
+    background: var(--surface-card);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-md);
+    padding: 16px 20px 14px;
+    width: 220px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+    position: relative;
+  }
+  .upload-card:not(.has-file) { border-style: dashed; }
+  .upload-card:hover { border-color: var(--primary); border-style: solid; box-shadow: var(--shadow-card); }
+  .upload-card.has-file { border-color: var(--primary); border-width: 2px; padding: 15px 19px 13px; border-style: solid; }
+  .upload-card .uc-icon { font-size: 24px; margin-bottom: 6px; display: block; }
+  .upload-card .uc-title { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .upload-card .uc-hint { font-size: 11px; color: var(--ash); line-height: 1.45; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; margin: 0 auto; }
+  .upload-card .uc-filename { font-size: 12px; color: var(--primary); margin-top: 6px; display: none; word-break: break-all; font-weight: 500; line-height: 1.35; }
+  .upload-card.has-file .uc-filename { display: block; }
+  .upload-card.has-file .uc-hint { display: none; }
+  .upload-card input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+  .btn-analyze {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 24px;
+    background: var(--primary);
+    color: var(--on-primary);
+    font-family: inherit; font-size: 14px; font-weight: 700;
+    border: none; border-radius: var(--radius-full);
+    cursor: pointer; transition: background .15s;
+    height: 40px; white-space: nowrap;
+  }
+  .btn-analyze {
+    box-shadow: 0 2px 8px rgba(0,80,203,0.22);
+  }
+  .btn-analyze:hover { background: var(--primary-hover); box-shadow: 0 4px 16px rgba(0,80,203,0.32); }
+  .btn-analyze:disabled { opacity: .6; cursor: not-allowed; }
+  .btn-analyze .spinner-btn {
+    display: none;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(35,37,29,.25);
+    border-top-color: var(--on-primary);
+    border-radius: 50%; animation: spin .7s linear infinite;
+  }
+  .btn-analyze.loading .spinner-btn { display: block; }
+  .btn-analyze.loading .btn-icon { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Collapsed summary bar */
+  .upload-summary {
+    display: none;
+    align-items: center; justify-content: center; gap: var(--sp-lg);
+    font-size: 13px; font-weight: 500; color: var(--body);
+    background: rgba(255,255,255,0.5);
+    border-radius: var(--radius-md);
+    padding: 8px 20px;
+  }
+  .upload-summary .us-reopen {
+    font-size: 12px; color: #3b82f6; cursor: pointer; text-decoration: none;
+    transition: text-decoration .15s;
+  }
+  .upload-summary .us-reopen:hover { text-decoration: underline; }
+  .upload-zone.collapsed .upload-inner { display: none; }
+  .upload-zone.collapsed .upload-summary { display: flex; }
+
+  /* ====== Status Bar ====== */
+  .status-bar {
+    display: none;
+    align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px;
+    background: var(--accent-green-soft);
+    color: var(--accent-green);
+    font-size: 13px; font-weight: 500;
+    border-radius: var(--radius-md);
+    border: 1px solid #ceead6;
+    margin: 0 0 16px;
+    line-height: 1.4;
+    text-align: center;
+  }
+  .status-bar.active { display: flex; }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent-green); animation: pulse 1.4s ease infinite;
+  }
+  .status-bar.done { background: var(--accent-green-soft); border-color: #ceead6; }
+  .status-bar.done .status-dot { background: var(--accent-green); animation: none; }
+  .status-bar.error { background: var(--accent-red-soft); color: var(--accent-red); border-color: #f5c6c2; }
+  .status-bar.error .status-dot { background: var(--accent-red); animation: none; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  .ellipsis-dots::after {
+    content: ''; animation: ellipsis 1.5s steps(4, end) infinite;
+    display: inline-block; width: 16px; text-align: left;
+  }
+  @keyframes ellipsis {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+    100% { content: '...'; }
+  }
+
+  /* ====== Loading Spiral ====== */
+  .loading-spiral {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 48px 24px;
+  }
+  .loading-spiral.active { display: flex; }
+  .spiral-frame {
+    width: min(36vmin, 220px);
+    aspect-ratio: 1;
+    color: var(--primary);
+  }
+  .spiral-frame svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .spiral-text {
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--mute);
+    letter-spacing: 0.02em;
+  }
+
+  /* ====== Dashboard Container ====== */
+  .container { max-width: 1280px; margin: 0 auto; }
+  .dashboard { display: none; }
+  .dashboard.active { display: block; animation: fadeUp .45s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ====== Zone Sections ====== */
+  .zone {
+    margin-bottom: 48px;
+    scroll-margin-top: 16px;
+  }
+  .zone.zone-absa {
+    margin-bottom: 56px;
+  }
+  .zone-label {
+    font-size: 14px; font-weight: 700; color: var(--charcoal);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: var(--sp-md);
+    padding-left: 2px;
+  }
+
+  /* ====== KPI Cards ====== */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-lg);
+  }
+  .card {
+    background: var(--surface-card);
+    border-radius: var(--radius-md);
+    padding: 24px 22px 20px;
+    transition: transform .25s ease, box-shadow .25s ease;
+    display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+    box-shadow: var(--shadow-card);
+    min-height: 140px;
+  }
+  .card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--hairline-soft);
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+  }
+  .card:hover::before { background: var(--primary); }
+  .card:nth-child(1) { animation: fadeUp .45s ease both; }
+  .card:nth-child(2) { animation: fadeUp .45s .07s ease both; }
+  .card:nth-child(3) { animation: fadeUp .45s .14s ease both; }
+  .card:nth-child(4) { animation: fadeUp .45s .21s ease both; }
+  .card-top {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  }
+  .card-icon {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .card-icon.icon-ink { background: var(--ink); }
+  .card-icon.icon-danger { background: var(--accent-red); }
+  .card-icon.icon-warning { background: var(--warning); }
+  .card-icon.icon-success { background: var(--accent-green); }
+  .card-context {
+    font-size: 13px; font-weight: 500; color: var(--mute);
+  }
+  .card-value {
+    font-family: "Hanken Grotesk", "Inter", sans-serif;
+    font-size: 48px; font-weight: 700; line-height: 1; letter-spacing: -0.5px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+  .card-value.danger { color: var(--accent-red); }
+  .card-value.warning { color: var(--warning); }
+  .card-value.success { color: var(--accent-green); }
+  .card-value.text {
+    font-size: 18px; font-weight: 600; letter-spacing: -0.3px;
+    line-height: 1.3; color: var(--charcoal);
+  }
+  .card-sub {
+    font-size: 12px; font-weight: 400; color: var(--mute);
+    margin-top: 4px; line-height: 1.45;
+  }
+  .card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .card-sub.clamped-text {
+    font-size: 12px; line-height: 1.6; color: var(--mute);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    margin-top: auto;
+  }
+  .kpi-tag {
+    display: inline-block; padding: 3px 12px;
+    border-radius: var(--radius-full);
+    font-size: 13px; font-weight: 600;
+  }
+  .kpi-tag-success { background: var(--accent-green-soft); color: var(--accent-green); }
+  .kpi-tag-danger { background: var(--accent-red-soft); color: var(--accent-red); }
+  .kpi-tag-neutral { background: var(--surface-soft); color: var(--mute); }
+  .kpi-tag-warning { background: var(--warning-soft); color: var(--warning); }
+
+  /* ====== Panel ====== */
+  .panel {
+    background: var(--surface-card);
+    border-radius: var(--radius-md);
+    padding: var(--sp-xl);
+    position: relative;
+    box-shadow: var(--shadow-card);
+  }
+  .panel-actions {
+    display: none; position: absolute; top: 16px; right: 16px; z-index: 5;
+    gap: 2px;
+  }
+  .panel:hover .panel-actions { display: flex; }
+  .panel-act-btn {
+    font-family: inherit; font-size: 11px; font-weight: 500;
+    color: var(--ash); background: var(--surface-card);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-md);
+    padding: 4px 8px; cursor: pointer; transition: all .15s;
+    white-space: nowrap;
+  }
+  .panel-act-btn:hover { color: var(--ink); border-color: var(--stone); }
+
+  /* Fullscreen Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.5); align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--surface-card);
+    border-radius: var(--radius-lg);
+    width: 90vw; max-width: 1100px; max-height: 85vh;
+    padding: var(--sp-xl);
+    position: relative; overflow-y: auto;
+    box-shadow: var(--shadow-modal);
+  }
+  .modal-close {
+    position: absolute; top: 12px; right: 16px;
+    font-family: inherit; font-size: 20px; color: var(--mute);
+    background: none; border: none; cursor: pointer;
+    line-height: 1; transition: color .15s;
+  }
+  .modal-close:hover { color: var(--ink); }
+  .modal-chart-wrap { position: relative; height: 65vh; }
+  .panel-title {
+    font-family: "Hanken Grotesk", "Inter", sans-serif;
+    font-size: 16px; font-weight: 600; color: var(--ink);
+    margin-bottom: 18px; line-height: 1.35;
+    display: flex; align-items: center; gap: var(--sp-sm);
+  }
+  .panel-title::before {
+    content: '';
+    width: 4px; height: 18px;
+    background: var(--primary);
+    border-radius: 2px;
+  }
+
+  /* ====== Chart Grid (2x2) ====== */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-lg);
+  }
+  .chart-grid .panel { margin-bottom: 0; }
+  .chart-wrap { position: relative; height: 300px; }
+  .chart-wrap.tall { height: 380px; }
+
+  /* ====== Tables ====== */
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 14px; font-weight: 400;
+  }
+  th, td {
+    padding: 10px 14px; text-align: left;
+    border-bottom: 1px solid var(--hairline-soft);
+    line-height: 1.5;
+    vertical-align: top;
+  }
+  td { font-size: 13px; }
+  th {
+    background: var(--surface-container-low);
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    color: var(--mute); letter-spacing: 0;
+    white-space: nowrap;
+  }
+  tr:nth-child(even) td { background: rgba(243,245,248,0.55); }
+  tr:hover td { background: var(--surface-container-low); }
+
+  /* ====== Tab Navigation (PostHog product-tab) ====== */
+  .tab-nav {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    margin-bottom: var(--sp-lg);
+  }
+  @media (max-width: 768px) {
+    .tab-nav {
+      flex-wrap: nowrap; overflow-x: auto;
+      -webkit-mask-image: linear-gradient(to right, black 88%, transparent 100%);
+      mask-image: linear-gradient(to right, black 88%, transparent 100%);
+      padding-bottom: 4px;
+    }
+  }
+  .tab-btn {
+    font-family: inherit; font-size: 13px; font-weight: 600; color: var(--body);
+    background: transparent;
+    border: none; border-radius: var(--radius-md);
+    padding: 7px 13px;
+    cursor: pointer; transition: all .15s;
+    display: inline-flex; align-items: center; gap: 5px;
+    white-space: nowrap;
+    position: relative;
+    line-height: 1.4;
+  }
+  .tab-btn:not(:last-child)::after {
+    content: '';
+    display: inline-block; width: 1px; height: 14px;
+    background: var(--hairline-soft);
+    position: absolute; right: -4px; top: 50%; transform: translateY(-50%);
+  }
+  .tab-btn.active::after { display: none; }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active {
+    background: var(--surface-card);
+    color: var(--ink);
+    box-shadow: var(--shadow-card);
+    border-radius: var(--radius-md);
+  }
+  .tab-btn.active + .tab-btn::after { display: none; }
+  .tab-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 18px;
+    border-radius: var(--radius-full);
+    font-size: 11px; font-weight: 700;
+    padding: 0 6px;
+  }
+  .tab-badge.red { background: var(--accent-red-soft); color: var(--accent-red); }
+  .tab-badge.green { background: var(--accent-green-soft); color: var(--accent-green); }
+  .tab-badge.purple { background: var(--accent-purple-soft); color: var(--accent-purple); }
+  .tab-badge.neutral { background: var(--surface-soft); color: var(--mute); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ====== Badge / Pill ====== */
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: var(--radius-full);
+    font-size: 12px; font-weight: 600; letter-spacing: 0;
+  }
+  .badge-p0 { background: var(--accent-red-soft); color: var(--accent-red); }
+  .badge-p1 { background: var(--warning-soft); color: var(--warning); }
+  .badge-p2 { background: var(--accent-blue-soft); color: var(--link-blue); }
+  .badge-p3 { background: var(--surface-soft); color: var(--mute); }
+  .badge-high { background: var(--accent-red-soft); color: var(--accent-red); }
+  .badge-mid { background: var(--warning-soft); color: var(--warning); }
+  .badge-low { background: var(--accent-green-soft); color: var(--accent-green); }
+  .badge-category { background: var(--accent-purple-soft); color: var(--accent-purple); }
+
+  /* ====== Quotes ====== */
+  .quote-list { margin: 0; padding-left: 0; list-style: none; }
+  .quote-list li { margin-bottom: 3px; color: var(--mute); font-style: italic; font-size: 12px; line-height: 1.5; }
+  .q-mark { color: var(--ash); font-style: normal; margin-right: 1px; }
+  .badge-lg { padding: 3px 12px; font-size: 12px; border-radius: var(--radius-full); }
+
+  /* ====== Behavior Cards ====== */
+  .behavior-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--sp-md);
+  }
+  .behavior-card {
+    background: var(--surface-card);
+    border-top: 3px solid transparent;
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-card);
+  }
+  .behavior-card:has(.badge-high) { border-top-color: var(--accent-red); }
+  .behavior-card:has(.badge-mid) { border-top-color: var(--primary); }
+  .behavior-card:has(.badge-low) { border-top-color: var(--accent-green); }
+  .behavior-card .b-label { font-weight: 600; font-size: 13px; color: var(--ink); line-height: 1.35; }
+  .behavior-card .b-count { font-size: 26px; font-weight: 800; margin: 4px 0; color: var(--ink); letter-spacing: -0.3px; }
+  .behavior-card .b-count span { font-size: 13px; color: var(--mute); font-weight: 400; }
+  .behavior-card .b-risk { font-size: 12px; margin-top: 4px; }
+
+  /* ====== Info Sources ====== */
+  .source-bar {
+    display: flex; align-items: center; gap: var(--sp-md); margin-bottom: 10px;
+  }
+  .source-bar .s-label { width: 110px; font-size: 13px; font-weight: 500; color: var(--body); text-align: left; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .source-bar .s-track { flex: 1; height: 22px; background: var(--surface-soft); border-radius: var(--radius-full); overflow: hidden; }
+  .source-bar .s-fill { height: 100%; background: linear-gradient(to right, var(--primary), #4285f4); border-radius: var(--radius-full); transition: width .8s ease; display: flex; align-items: center; padding-left: 10px; font-size: 11px; color: var(--on-primary); font-weight: 600; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); }
+  .source-bar .s-count { width: 65px; font-size: 12px; color: var(--mute); flex-shrink: 0; text-align: right; }
+
+  /* ====== Markdown ====== */
+  .markdown-body { padding: 4px 0; font-size: 15px; line-height: 1.82; color: var(--body); }
+  .markdown-body h2 {
+    font-size: 17px; font-weight: 600; color: var(--charcoal);
+    margin: 28px 0 10px;
+  }
+  .markdown-body h3 {
+    font-size: 16px; font-weight: 600; color: var(--ink);
+    margin: 24px 0 10px; padding-left: 12px;
+    border-left: 3px solid var(--primary);
+  }
+  .markdown-body p { margin-bottom: 14px; }
+  .markdown-body p + p { margin-top: -4px; }
+  .markdown-body ul, .markdown-body ol {
+    padding-left: 0; margin: 8px 0 16px; list-style: none;
+  }
+  .markdown-body ul li {
+    padding-left: 20px; position: relative; margin-bottom: 6px;
+  }
+  .markdown-body ul li::before {
+    content: '—'; color: var(--ash);
+    position: absolute; left: 0; top: 0;
+  }
+  .markdown-body ol { padding-left: 22px; list-style: decimal; }
+  .markdown-body ol li { margin-bottom: 6px; }
+  .markdown-body blockquote {
+    border-left: 3px solid var(--primary);
+    padding: 14px 18px; margin: 16px 0;
+    color: var(--body);
+    background: var(--surface-container-low);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    font-size: 14px; line-height: 1.65;
+  }
+  .markdown-body blockquote p { margin-bottom: 6px; }
+  .markdown-body strong { color: var(--ink); font-weight: 700; }
+  .markdown-body hr {
+    border: none; border-top: 1px solid var(--hairline-soft);
+    margin: 24px 0;
+  }
+
+  /* ====== Structured Summary Grid ====== */
+  .structured-summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 16px 0 28px 0;
+  }
+  .summary-col {
+    background: var(--surface-container-low);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+  }
+  .moat-col { border-top: 4px solid #4d7c5a; }
+  .flaw-col { border-top: 4px solid #c86b63; }
+  .summary-col h3 {
+    font-family: "Hanken Grotesk", "Inter", sans-serif;
+    font-size: 15px; font-weight: 600; color: var(--ink);
+    margin: 0 0 16px 0; padding-left: 0; border-left: none;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .summary-col ul, .summary-col ol {
+    padding-left: 18px !important;
+    margin: 0 !important;
+  }
+  .summary-col li {
+    font-size: 13px !important;
+    line-height: 1.7 !important;
+    color: #44474e !important;
+    margin-bottom: 12px !important;
+  }
+  .summary-col li:last-child { margin-bottom: 0 !important; }
+  .markdown-body > h2 {
+    font-size: 18px; font-weight: 600;
+    margin: 0 0 16px 0; color: var(--ink);
+  }
+  .markdown-body > h3:not(.processed) {
+    font-size: 15px; font-weight: 600;
+    margin: 24px 0 12px 0; color: var(--ink);
+    border-left: 3px solid var(--primary);
+    padding-left: 8px;
+  }
+  @media (max-width: 768px) {
+    .structured-summary-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ====== Error Toast ====== */
+  .error-toast {
+    display: none;
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    background: var(--surface-card);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+    padding: 14px 24px; border-radius: var(--radius-md);
+    font-size: 14px; font-weight: 500;
+    z-index: 999;
+    animation: slideDown .35s ease;
+    max-width: 560px;
+    align-items: center; gap: 10px;
+  }
+  .error-toast.active { display: flex; }
+  .toast-close {
+    margin-left: auto; cursor: pointer; opacity: .6; font-size: 18px;
+    line-height: 1; background: none; border: none; color: inherit;
+    font-family: inherit;
+  }
+  .toast-close:hover { opacity: 1; }
+  @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-16px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+  /* ====== Footer ====== */
+  .footer {
+    text-align: center; padding: 16px 20px 8px;
+    font-size: 13px; font-weight: 500; color: var(--ash);
+  }
+
+  /* ====== Responsive ====== */
+  @media (max-width: 1024px) {
+    .sidebar { width: 200px; }
+    .cards { grid-template-columns: repeat(2, 1fr); }
+    .chart-grid { grid-template-columns: 1fr; }
+    .behavior-cards { grid-template-columns: 1fr 1fr; }
+    .main-area { padding: 0 20px 40px; }
+    .top-bar { margin: 0 -20px; padding: 10px 20px; }
+    .top-bar-chip { max-width: 140px; font-size: 11px; }
+  }
+  @media (max-width: 768px) {
+    .app-shell { flex-direction: column; }
+    .sidebar {
+      width: 100%; height: auto; flex-shrink: 0;
+      flex-direction: row; align-items: center;
+      padding: 0 16px; min-height: 48px;
+    }
+    .sidebar-brand { margin-bottom: 0; padding: 0; font-size: 13px; }
+    .sidebar-brand .sb-icon { font-size: 18px; }
+    .sidebar-divider { display: none; }
+    .sidebar-nav { flex-direction: row; gap: 4px; padding: 0; }
+    .sidebar-nav a { border-left: none; border-bottom: 2px solid transparent; border-radius: 0; padding: 8px 10px; font-size: 11px; }
+    .sidebar-nav a.active { border-left-color: transparent; border-bottom-color: var(--primary); }
+    .sidebar-nav .sn-dot { display: none; }
+    .sidebar-footer { margin-top: 0; padding: 0; }
+    .sidebar-export { font-size: 11px; padding: 4px 10px; width: auto; }
+    .main-area { padding: 0 16px 32px; }
+    .top-bar { margin: 0 -16px; padding: 8px 16px; min-height: 44px; }
+    .top-bar-chip { max-width: 120px; font-size: 11px; }
+    .cards { grid-template-columns: repeat(2, 1fr); }
+    .behavior-cards { grid-template-columns: 1fr; }
+    .upload-inner { flex-direction: column; align-items: center; }
+    .upload-card { width: 100%; max-width: 280px; }
+  }
+  @media (max-width: 480px) {
+    .sidebar { padding: 0 10px; }
+    .sidebar-brand { font-size: 11px; }
+    .sidebar-nav a { font-size: 10px; padding: 6px 8px; }
+    .sidebar-export { display: none; }
+    .main-area { padding: 0 10px 24px; }
+    .top-bar { margin: 0 -10px; padding: 6px 10px; min-height: 40px; flex-wrap: wrap; gap: 6px; }
+    .top-bar-chip { max-width: 100px; font-size: 10px; padding: 3px 8px; }
+    .top-bar-reupload { font-size: 10px; padding: 4px 10px; }
+    .cards { grid-template-columns: 1fr; }
+    .chart-grid { grid-template-columns: 1fr; }
+    .behavior-cards { grid-template-columns: 1fr; }
+    .upload-card { width: 100%; max-width: 320px; }
+  }
+  /* ===== v3.0: Scene Tabs ===== */
+  .scene-tabs { display: flex; gap: var(--sp-sm); margin-bottom: var(--sp-lg); }
+  .scene-tab { flex: 1; padding: 10px 16px; border: 1px solid var(--hairline); border-radius: var(--radius-md); background: var(--surface); color: var(--body); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .scene-tab:hover { border-color: var(--primary); background: var(--primary-container); }
+  .scene-tab.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+  /* ===== v3.0: Mode Selector ===== */
+  .mode-selector { display: flex; gap: var(--sp-sm); margin: var(--sp-md) 0; }
+  .mode-option { flex: 1; display: flex; flex-direction: column; align-items: flex-start; padding: 12px; border: 1px solid var(--hairline); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s; background: var(--surface); }
+  .mode-option:hover { border-color: var(--primary); }
+  .mode-option input { display: none; }
+  .mode-option input:checked ~ .mode-label { color: var(--primary); }
+  .mode-option:has(input:checked) { border-color: var(--primary); background: var(--primary-container); }
+  .mode-label { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .mode-desc { font-size: 11px; color: var(--mute); margin-top: 2px; }
+  /* ===== v3.0: Agent Timeline ===== */
+  .agent-timeline { display: none; padding: var(--sp-md) var(--sp-lg); background: var(--surface); border: 1px solid var(--hairline-soft); border-radius: var(--radius-md); margin-bottom: var(--sp-md); }
+  .agent-timeline.active { display: block; }
+  .timeline-track { position: relative; padding-left: 24px; }
+  .timeline-track::before { content: ''; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 2px; background: var(--hairline); border-radius: 1px; }
+  .timeline-node { position: relative; padding: 6px 0 6px 20px; }
+  .timeline-node::before { content: ''; position: absolute; left: -21px; top: 10px; width: 10px; height: 10px; border-radius: 50%; background: var(--stone); border: 2px solid var(--surface); transition: all 0.3s; }
+  .timeline-node.waiting { color: var(--mute); }
+  .timeline-node.waiting::before { background: var(--stone); }
+  .timeline-node.running { color: var(--ink); font-weight: 500; }
+  .timeline-node.running::before { background: var(--primary); animation: pulse-dot 1.2s ease-in-out infinite; }
+  .timeline-node.done { color: var(--ink); }
+  .timeline-node.done::before { background: var(--accent-green); }
+  .timeline-node.error { color: var(--accent-red); }
+  .timeline-node.error::before { background: var(--accent-red); }
+  @keyframes pulse-dot { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.8); opacity: 0.4; } }
+  .tl-header { display: flex; justify-content: space-between; align-items: center; }
+  .tl-label { font-size: 13px; }
+  .tl-duration { font-size: 11px; color: var(--mute); }
+  .tl-message { font-size: 11px; color: var(--mute); margin-top: 1px; }
+  .tl-detail { display: none; margin-top: var(--sp-sm); padding: var(--sp-sm); background: var(--surface-soft); border-radius: var(--radius-sm); font-size: 11px; max-height: 200px; overflow-y: auto; }
+  .tl-detail.open { display: block; }
+  .timeline-node.done .tl-label { cursor: pointer; }
+  .timeline-node.done .tl-label:hover { color: var(--primary); }
+</style>
+</head>
+<body>
+
+<!-- ====== Error Toast (fixed position, outside shell) ====== -->
+<div class="error-toast" id="errorToast"></div>
+
+<div class="app-shell">
+
+  <!-- ====== Left Sidebar ====== -->
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-brand" href="#"><span class="sb-icon">📊</span> 用户反馈分析</a>
+    <div class="sidebar-divider"></div>
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="#zone-overview" data-zone="overview" class="active"><span class="sn-dot"></span> 总览</a></li>
+        <li><a href="#zone-charts" data-zone="charts"><span class="sn-dot"></span> 图表</a></li>
+        <li><a href="#zone-insights" data-zone="insights"><span class="sn-dot"></span> 洞察</a></li>
+        <li><a href="#zone-conclusion" data-zone="conclusion"><span class="sn-dot"></span> 风险</a></li>
+      </ul>
+    </nav>
+    <!-- File Context Bar -->
+    <div class="sidebar-ctx" id="sidebarCtx">
+      <span class="ctx-label">当前分析</span>
+      <span class="ctx-files" id="ctxFiles">尚未上传</span>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="export-dropdown" id="exportDropdown">
+        <button class="sidebar-export" onclick="toggleExportMenu()">📥 导出报告 ▾</button>
+        <div class="export-menu" id="exportMenu">
+          <button onclick="exportPDF()">📄 导出 PDF</button>
+          <button onclick="exportImage()">🖼️ 导出长图</button>
+          <button onclick="copyMarkdown()">📋 复制 Markdown</button>
+          <button onclick="shareLink()">🔗 复制分享链接</button>
+        </div>
+      </div>
+      <button class="sidebar-new-btn" onclick="startNewAnalysis()">+ 新建分析</button>
+    </div>
+  </aside>
+
+  <!-- ====== Main Content Area ====== -->
+  <main class="main-area" id="mainArea">
+
+    <!-- Top Bar -->
+    <header class="top-bar" id="topBar">
+      <div class="top-bar-left">
+        <span class="top-bar-chip" id="topBarChipReview">📋 尚未上传</span>
+        <span class="top-bar-chip" id="topBarChipBg">📄 尚未上传</span>
+      </div>
+      <div class="top-bar-right">
+        <button class="top-bar-reupload" onclick="expandUploadZone()">重新上传</button>
+      </div>
+    </header>
+
+    <!-- v3.0: Scene Tabs -->
+    <div class="scene-tabs">
+      <button class="scene-tab active" data-scene="feedback" onclick="switchScene('feedback')">用户反馈分析</button>
+      <button class="scene-tab" data-scene="competitor" onclick="switchScene('competitor')">竞品分析</button>
+    </div>
+
+    <!-- Upload Zone (compact, collapsible) -->
+    <div class="upload-zone" id="uploadZone">
+      <div class="upload-inner" id="uploadInner">
+        <label class="upload-card" id="cardReview">
+          <span class="uc-icon">📋</span>
+          <span class="uc-title">用户评论数据</span>
+          <span class="uc-hint">TXT / PDF / XLSX / DOCX / CSV / EPUB ...</span>
+          <span class="uc-filename" id="fnReview"></span>
+          <input type="file" id="reviewFile" accept=".txt,.md,.mdx,.markdown,.pdf,.html,.htm,.xlsx,.xls,.doc,.docx,.csv,.eml,.msg,.pptx,.ppt,.xml,.epub" onchange="onFileSelected(this, 'cardReview', 'fnReview')">
+        </label>
+        <label class="upload-card" id="cardBg">
+          <span class="uc-icon">📄</span>
+          <span class="uc-title">产品背景文档</span>
+          <span class="uc-hint">文档 / 图片：TXT / PDF / DOCX / JPG / PNG / SVG ...</span>
+          <span class="uc-filename" id="fnBg"></span>
+          <input type="file" id="backgroundFile" accept=".txt,.md,.mdx,.markdown,.pdf,.html,.htm,.xlsx,.xls,.doc,.docx,.csv,.eml,.msg,.pptx,.ppt,.xml,.epub,.jpg,.jpeg,.png,.gif,.webp,.svg" onchange="onFileSelected(this, 'cardBg', 'fnBg')">
+        </label>
+        <!-- v3.0: Mode Selector -->
+        <div class="mode-selector">
+          <label class="mode-option">
+            <input type="radio" name="analysisMode" value="multi-agent" checked onchange="updateModeUI()">
+            <span class="mode-label">深度分析（多 Agent）</span>
+            <span class="mode-desc">5 步推进，进度可见，结果更精准</span>
+          </label>
+          <label class="mode-option">
+            <input type="radio" name="analysisMode" value="single">
+            <span class="mode-label">快速分析（单工作流）</span>
+            <span class="mode-desc">一次完成，速度更快</span>
+          </label>
+        </div>
+        <button class="btn-analyze" id="submitBtn" onclick="runAnalysis()">
+          <span class="btn-icon">🔍</span> 开始分析
+          <span class="spinner-btn"></span>
+        </button>
+      </div>
+      <div class="upload-summary" id="uploadSummary" onclick="expandUploadZone()">
+        <span id="summaryText"></span>
+        <span class="us-reopen">重新上传</span>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar" id="statusBar">
+      <span class="status-dot"></span>
+      <span id="statusText"></span>
+    </div>
+
+    <!-- v3.0: Agent Timeline -->
+    <div class="agent-timeline" id="agentTimeline">
+      <div class="timeline-track" id="timelineTrack">
+        <!-- JS 动态生成 5 个节点 -->
+      </div>
+    </div>
+
+    <!-- Loading Spiral -->
+    <div class="loading-spiral" id="loadingSpiral">
+      <div class="spiral-frame">
+        <svg viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <g id="spiralGroup">
+            <path id="spiralPath" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"></path>
+          </g>
+        </svg>
+      </div>
+      <div class="spiral-text" id="spiralText">正在深度分析用户反馈…</div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="container">
+    <div class="dashboard" id="dashboard">
+
+      <!-- Zone: Overview — KPI Cards -->
+      <section class="zone" id="zone-overview">
+        <div class="zone-label">关键指标</div>
+        <div class="cards" id="summaryCards"></div>
+      </section>
+
+      <!-- Zone: Charts — 2x2 Grid -->
+      <section class="zone" id="zone-charts">
+        <div class="zone-label">图表分析</div>
+        <div class="chart-grid">
+          <div class="panel">
+            <div class="panel-title">评分分布</div>
+            <div class="chart-wrap"><canvas id="chartRating"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">主观性构成</div>
+            <div class="chart-wrap"><canvas id="chartSubjectivity"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">情绪分布</div>
+            <div class="chart-wrap"><canvas id="chartEmotion"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">行为意图信号</div>
+            <div id="behaviorCards" class="behavior-cards" style="padding:4px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Zone: ABSA Matrix (full width, extra bottom padding) -->
+      <section class="zone zone-absa" id="zone-absa">
+        <div class="zone-label">态度-目标矩阵</div>
+        <div class="panel" id="attitudePanel">
+          <div class="panel-title">态度-目标矩阵 (ABSA)</div>
+          <div class="chart-wrap"><canvas id="chartAttitudeGoal"></canvas></div>
+        </div>
+      </section>
+
+      <!-- Zone: Deep Insights — Info Sources + Tabbed Tables -->
+      <section class="zone" id="zone-insights">
+        <div class="zone-label">深度洞察</div>
+
+        <!-- Info Sources -->
+        <div class="panel" id="infoSourcePanel" style="margin-bottom: var(--sp-lg);">
+          <div class="panel-title">信息源归因</div>
+          <div id="infoSources"></div>
+        </div>
+
+        <!-- Tabbed Tables -->
+        <div class="panel" id="tablesPanel">
+          <div class="panel-title">详细数据</div>
+          <div class="tab-nav" id="tabNav">
+            <button class="tab-btn active" data-tab="defects">负面问题 <span class="tab-badge red" id="badge-defects">0</span></button>
+            <button class="tab-btn" data-tab="highlights">好评亮点 <span class="tab-badge green" id="badge-highlights">0</span></button>
+            <button class="tab-btn" data-tab="requests">功能诉求 <span class="tab-badge purple" id="badge-requests">0</span></button>
+            <button class="tab-btn" data-tab="conflicts">冲突案例 <span class="tab-badge red" id="badge-conflicts">0</span></button>
+            <button class="tab-btn" data-tab="churn">流失预警 <span class="tab-badge red" id="badge-churn">0</span></button>
+            <button class="tab-btn" data-tab="priority">优先级看板 <span class="tab-badge neutral" id="badge-priority">0</span></button>
+          </div>
+          <div class="tab-panel active" id="tab-defects">
+            <div class="table-wrap" id="defectsTable"></div>
+          </div>
+          <div class="tab-panel" id="tab-highlights">
+            <div class="table-wrap" id="highlightsTable"></div>
+          </div>
+          <div class="tab-panel" id="tab-requests">
+            <div class="table-wrap" id="requestsTable"></div>
+          </div>
+          <div class="tab-panel" id="tab-conflicts">
+            <div class="table-wrap" id="conflictsTable"></div>
+          </div>
+          <div class="tab-panel" id="tab-churn">
+            <div class="table-wrap" id="churnTable"></div>
+          </div>
+          <div class="tab-panel" id="tab-priority">
+            <div class="table-wrap" id="priorityTable"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Zone: Conclusion -->
+      <section class="zone" id="zone-conclusion">
+      <div class="panel panel-doc" id="conclusionPanel">
+          <div class="panel-title">总结结论</div>
+          <div class="markdown-body" id="conclusionContent"></div>
+        </div>
+      </section>
+
+    </div>
+    </div>
+
+    <!-- Fullscreen Chart Modal -->
+<div class="modal-overlay" id="chartModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div class="panel-title" id="modalTitle">图表</div>
+    <div class="modal-chart-wrap" id="modalChartWrap"></div>
+  </div>
+</div>
+
+<div class="footer">Powered by Dify + DeepSeek V4</div>
+
+  </main>
+
+</div>
+
+<script>
+// ===== State =====
+const charts = {};
+const BASE_URL = window.location.origin + '/api';
+let currentTab = 'defects';
+let currentScene = 'feedback';
+let agentResults = {};   // 存储每个 Agent 的中间输出，点击时间线节点可查看
+
+// ===== Chart.js Global Animation =====
+if (typeof Chart !== 'undefined') {
+  Chart.defaults.animation = Object.assign({}, Chart.defaults.animation, { duration: 800, easing: 'easeOutQuart' });
+}
+
+// Doughnut center text plugin
+const doughnutCenterPlugin = {
+  id: 'centerText',
+  afterDraw: function(chart) {
+    if (chart.canvas.id !== 'chartSubjectivity') return;
+    const { ctx, chartArea: { width, height, top, left } } = chart;
+    const data = chart.data.datasets[0].data;
+    const total = data.reduce(function(a, b) { return a + b; }, 0);
+    if (!total) return;
+    const pct = Math.round(data[0] / total * 100);
+    ctx.save();
+    ctx.font = '500 12px "Inter", sans-serif';
+    ctx.fillStyle = '#757575';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(chart.data.labels[0], left + width / 2, top + height / 2 - 2);
+    ctx.font = '700 24px "Hanken Grotesk", "Inter", sans-serif';
+    ctx.fillStyle = '#1a1c1e';
+    ctx.textBaseline = 'top';
+    ctx.fillText(pct + '%', left + width / 2, top + height / 2 + 2);
+    ctx.restore();
+  }
+};
+
+// ===== File Selection UI =====
+function onFileSelected(input, cardId, fnId) {
+  const card = document.getElementById(cardId);
+  const fn = document.getElementById(fnId);
+  if (input.files.length > 0) {
+    card.classList.add('has-file');
+    fn.textContent = input.files[0].name;
+  } else {
+    card.classList.remove('has-file');
+    fn.textContent = '';
+  }
+}
+
+// ===== Status / Error =====
+function setStatus(active, text, cls) {
+  const bar = document.getElementById('statusBar');
+  const label = document.getElementById('statusText');
+  if (active) {
+    bar.className = 'status-bar active ' + (cls || '');
+    label.innerHTML = text + '<span class="ellipsis-dots"></span>';
+  } else {
+    bar.classList.remove('active');
+  }
+}
+
+function showError(msg) {
+  const toast = document.getElementById('errorToast');
+  toast.innerHTML = '<span>⚠ ' + esc(msg) + '</span><button class="toast-close" onclick="this.parentElement.classList.remove(\'active\')">&times;</button>';
+  toast.classList.add('active');
+  setTimeout(() => toast.classList.remove('active'), 5000);
+}
+
+// ===== Upload Zone Collapse / Expand =====
+function dismissUploadZone() {
+  document.getElementById('uploadZone').classList.add('dismissed');
+}
+
+function expandUploadZone() {
+  document.getElementById('uploadZone').classList.remove('collapsed', 'dismissed');
+}
+
+// ===== Tab Switching =====
+function switchTab(tabName) {
+  currentTab = tabName;
+  // Update buttons
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector('[data-tab="' + tabName + '"]');
+  if (btn) btn.classList.add('active');
+  // Update panels
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('tab-' + tabName);
+  if (panel) panel.classList.add('active');
+}
+
+// ===== Scroll to Zone =====
+function scrollToZone(zoneId) {
+  const zone = document.getElementById(zoneId);
+  const mainArea = document.getElementById('mainArea');
+  if (!zone || !mainArea) return;
+  const mainRect = mainArea.getBoundingClientRect();
+  const zoneRect = zone.getBoundingClientRect();
+  const uploadZone = document.getElementById('uploadZone');
+  const uploadH = uploadZone ? uploadZone.offsetHeight : 0;
+  const offset = uploadH + 8;
+  const targetScroll = mainArea.scrollTop + zoneRect.top - mainRect.top - offset;
+  mainArea.scrollTo({ top: targetScroll, behavior: 'smooth' });
+}
+
+// ===== Export Functions =====
+function toggleExportMenu() {
+  document.getElementById('exportMenu').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.export-dropdown')) {
+    document.getElementById('exportMenu').classList.remove('open');
+  }
+});
+
+function getReportClone() {
+  var clone = document.getElementById('dashboard').cloneNode(true);
+  // Canvas → images
+  var canvasMap = {};
+  document.querySelectorAll('canvas').forEach(function(c, i) {
+    try { canvasMap['chart-' + i] = c.toDataURL('image/png'); } catch(e) {}
+  });
+  var idx = 0;
+  clone.querySelectorAll('canvas').forEach(function(c) {
+    var imgData = canvasMap['chart-' + idx];
+    if (imgData) {
+      var img = document.createElement('img');
+      img.src = imgData;
+      img.style.cssText = 'width:100%;max-width:100%;display:block;margin:8px 0;';
+      c.parentNode.replaceChild(img, c);
+    }
+    idx++;
+  });
+  clone.querySelectorAll('.tab-panel').forEach(function(p) { p.style.display = 'block'; });
+  var tabNav = clone.querySelector('.tab-nav');
+  if (tabNav) tabNav.style.display = 'none';
+  return clone;
+}
+
+function getReportStyles() {
+  return 'body{font-family:\"Inter\",\"PingFang SC\",\"Microsoft YaHei\",sans-serif;' +
+    'max-width:960px;margin:0 auto;padding:40px 32px;color:#44474e;line-height:1.7;background:#fff;}' +
+    'h1{font-size:24px;font-weight:800;color:#1a1c1e;margin:0 0 6px;}' +
+    '.report-meta{color:#5e6269;font-size:14px;margin-bottom:32px;}' +
+    '.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px;}' +
+    '.card{background:#fbfcfe;border:1px solid #e3e6eb;border-top:3px solid #0050cb;border-radius:6px;padding:16px;}' +
+    '.card-value{font-size:32px;font-weight:800;color:#1a1c1e;line-height:1.15;}' +
+    '.card-value.danger{color:#d93025;}.card-value.warning{color:#e37400;}.card-value.success{color:#1e8e3e;}' +
+    '.panel{background:#fff;border:1px solid #d0d4db;border-radius:6px;padding:20px 24px;margin-bottom:20px;}' +
+    '.panel-title{font-size:17px;font-weight:700;color:#1a1c1e;margin-bottom:14px;padding-left:12px;border-left:4px solid #0050cb;}' +
+    'table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0;}' +
+    'th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #e3e6eb;vertical-align:top;}' +
+    'th{background:#fbfcfe;font-size:11px;font-weight:600;text-transform:uppercase;color:#5e6269;}' +
+    '.badge{display:inline-block;padding:1px 8px;border-radius:9999px;font-size:11px;font-weight:600;}' +
+    '.badge-p0{background:#fce8e6;color:#d93025;}.badge-p1{background:var(--warning-soft);color:#e37400;}' +
+    '.badge-p2{background:#e8f0fe;color:#0050cb;}.badge-p3{background:#e9ecf1;color:#5e6269;}' +
+    '.badge-high{background:#fce8e6;color:#d93025;}.badge-mid{background:var(--warning-soft);color:#e37400;}' +
+    '.badge-low{background:#e6f4ea;color:#1e8e3e;}.badge-category{background:#f3e8fd;color:#7c44a6;}' +
+    '.quote-list{margin:0;padding-left:14px;}.quote-list li{margin-bottom:2px;color:#5e6269;font-style:italic;font-size:12px;}' +
+    '.markdown-body{font-size:15px;line-height:1.75;}' +
+    '.markdown-body h2{font-size:19px;font-weight:700;color:#1a1c1e;margin:24px 0 12px;}' +
+    '.markdown-body h3{font-size:16px;font-weight:600;color:#1a1c1e;margin:18px 0 8px;}' +
+    '.markdown-body p{margin-bottom:12px;}.markdown-body ul,.markdown-body ol{padding-left:20px;margin-bottom:12px;}' +
+    '.markdown-body li{margin-bottom:4px;}.markdown-body strong{color:#1a1c1e;font-weight:700;}' +
+    '.source-bar{display:flex;align-items:center;gap:12px;margin-bottom:8px;}' +
+    '.source-bar .s-label{width:100px;font-size:13px;color:#44474e;}' +
+    '.source-bar .s-track{flex:1;height:20px;background:#e9ecf1;border-radius:9999px;overflow:hidden;}' +
+    '.source-bar .s-fill{height:100%;background:#0050cb;border-radius:9999px;min-width:2px;}' +
+    '.source-bar .s-count{width:60px;font-size:12px;color:#5e6269;text-align:right;}' +
+    '.behavior-card{background:#fff;border:1px solid #d0d4db;border-top:3px solid #d0d4db;border-radius:6px;padding:12px 16px;margin-bottom:8px;}' +
+    '.behavior-card .b-label{font-weight:600;font-size:13px;color:#1a1c1e;}' +
+    '.behavior-card .b-count{font-size:24px;font-weight:800;color:#1a1c1e;}';
+}
+
+function exportPDF() {
+  toggleExportMenu();
+  var clone = getReportClone();
+  var html = '<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"UTF-8\"><title>用户反馈分析报告</title>' +
+    '<style>' + getReportStyles() + '@media print{body{padding:20px 24px;}@page{margin:12mm;}}</style>' +
+    '</head><body><h1>📊 用户反馈分析报告</h1>' +
+    '<div class=\"report-meta\">生成时间：' + new Date().toLocaleString('zh-CN') + '</div>' +
+    clone.outerHTML + '</body></html>';
+  var w = window.open('', '_blank', 'width=1020,height=800');
+  if (!w) { window.print(); return; }
+  w.document.write(html);
+  w.document.close();
+  w.onload = function() { w.focus(); setTimeout(function() { w.print(); }, 600); };
+}
+
+function exportImage() {
+  toggleExportMenu();
+  var mainArea = document.getElementById('mainArea');
+  if (!mainArea) return;
+  var origScroll = mainArea.scrollTop;
+  var origOverflow = mainArea.style.overflow;
+  var origHeight = mainArea.style.height;
+  mainArea.style.overflow = 'visible';
+  mainArea.style.height = 'auto';
+  mainArea.style.maxHeight = 'none';
+  html2canvas(mainArea, { backgroundColor: '#f7f9fc', scale: 2, useCORS: true }).then(function(canvas) {
+    mainArea.style.overflow = origOverflow;
+    mainArea.style.height = origHeight;
+    mainArea.style.maxHeight = '';
+    mainArea.scrollTop = origScroll;
+    var link = document.createElement('a');
+    link.download = '用户反馈分析报告_' + new Date().toISOString().slice(0,10) + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('✅ 长图已下载');
+  }).catch(function() {
+    mainArea.style.overflow = origOverflow;
+    mainArea.style.height = origHeight;
+    mainArea.style.maxHeight = '';
+    showError('导出失败，请尝试 PDF 导出');
+  });
+}
+
+function copyMarkdown() {
+  toggleExportMenu();
+  var mdContent = document.getElementById('conclusionContent').textContent || '';
+  if (!mdContent.trim()) { showError('无 Markdown 内容可复制'); return; }
+  navigator.clipboard.writeText(mdContent).then(function() {
+    showToast('✅ Markdown 已复制到剪贴板');
+  }).catch(function() {
+    showError('复制失败，请手动选择文字');
+  });
+}
+
+function showToast(msg) {
+  var t = document.getElementById('errorToast');
+  t.innerHTML = '<span>' + msg + '</span><button class=\"toast-close\" onclick=\"this.parentElement.classList.remove(\'active\')\">&times;</button>';
+  t.classList.add('active');
+  setTimeout(function() { t.classList.remove('active'); }, 2500);
+}
+
+// ===== File Context Bar =====
+function updateContextBar(reviewName, bgName) {
+  document.getElementById('ctxFiles').textContent = '📋 ' + (reviewName || '-') + '\n📄 ' + (bgName || '-');
+  var chipR = document.getElementById('topBarChipReview');
+  var chipB = document.getElementById('topBarChipBg');
+  if (chipR) chipR.textContent = '📋 ' + (reviewName || '未上传');
+  if (chipB) chipB.textContent = '📄 ' + (bgName || '未上传');
+}
+
+function injectPanelActions() {
+  var chartPanels = [
+    { sel: '#chartRating', title: '评分分布', id: 'chartRating' },
+    { sel: '#chartSubjectivity', title: '主观性构成', id: 'chartSubjectivity' },
+    { sel: '#chartEmotion', title: '情绪分布', id: 'chartEmotion' },
+    { sel: '#chartAttitudeGoal', title: '态度-目标矩阵', id: 'chartAttitudeGoal' }
+  ];
+  chartPanels.forEach(function(p) {
+    var canvas = document.getElementById(p.id);
+    if (!canvas) return;
+    var panel = canvas.closest('.panel');
+    if (!panel || panel.querySelector('.panel-actions')) return;
+    var actions = document.createElement('div');
+    actions.className = 'panel-actions';
+    actions.innerHTML = '<button class=\"panel-act-btn\" onclick=\"saveChartPNG(\'' + p.id + '\',\'' + p.title + '\')\" title=\"保存PNG\">⬇</button>' +
+      '<button class=\"panel-act-btn\" onclick=\"openChartModal(\'' + p.id + '\',\'' + p.title + '\')\" title=\"全屏\">🔍</button>';
+    panel.insertBefore(actions, panel.firstChild);
+  });
+}
+
+// ===== New Analysis =====
+function startNewAnalysis() {
+  if (document.getElementById('dashboard').classList.contains('active')) {
+    if (!confirm('当前分析结果将丢失。是否继续？')) return;
+  }
+  hideSpiral();
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('uploadZone').classList.remove('collapsed', 'dismissed');
+  document.getElementById('reviewFile').value = '';
+  document.getElementById('backgroundFile').value = '';
+  document.getElementById('fnReview').textContent = '';
+  document.getElementById('fnBg').textContent = '';
+  document.getElementById('cardReview').classList.remove('has-file');
+  document.getElementById('cardBg').classList.remove('has-file');
+  document.getElementById('statusBar').classList.remove('active');
+  document.getElementById('ctxFiles').textContent = '尚未上传';
+  var chipR = document.getElementById('topBarChipReview');
+  var chipB = document.getElementById('topBarChipBg');
+  if (chipR) chipR.textContent = '📋 尚未上传';
+  if (chipB) chipB.textContent = '📄 尚未上传';
+  Object.keys(charts).forEach(function(k) { if (charts[k]) charts[k].destroy(); });
+  var mainArea = document.getElementById('mainArea');
+  mainArea.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== Chart Actions =====
+function saveChartPNG(canvasId, name) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var link = document.createElement('a');
+  link.download = name + '_' + new Date().toISOString().slice(0,10) + '.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+function openChartModal(canvasId, title) {
+  var modal = document.getElementById('chartModal');
+  document.getElementById('modalTitle').textContent = title;
+  // Clone the canvas into modal
+  var origCanvas = document.getElementById(canvasId);
+  if (!origCanvas) return;
+  var modalWrap = document.getElementById('modalChartWrap');
+  modalWrap.innerHTML = '';
+  var newCanvas = document.createElement('canvas');
+  newCanvas.id = 'modalCanvas';
+  modalWrap.appendChild(newCanvas);
+  // Copy chart config
+  var origChart = Object.values(charts).find(function(c) { return c && c.canvas && c.canvas.id === canvasId; });
+  if (origChart) {
+    var cfg = JSON.parse(JSON.stringify(origChart.config));
+    cfg.options = Object.assign({}, cfg.options, { responsive: true, maintainAspectRatio: false });
+    var ctx = newCanvas.getContext('2d');
+    new Chart(ctx, cfg);
+  } else {
+    newCanvas.getContext('2d').drawImage(origCanvas, 0, 0);
+  }
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('chartModal').classList.remove('open');
+  document.body.style.overflow = '';
+  var c = Chart.getChart('modalCanvas');
+  if (c) c.destroy();
+}
+
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+
+// ===== Share Link =====
+function shareLink() {
+  toggleExportMenu();
+  var conclusionEl = document.getElementById('conclusionContent');
+  var rawText = conclusionEl ? conclusionEl.textContent || '' : '';
+  var payload = { t: Date.now(), m: rawText.substring(0, 8000) };
+  try {
+    var json = JSON.stringify(payload);
+    var compressed = LZString.compressToEncodedURIComponent(json);
+    if (compressed.length > 1800) {
+      showError('报告内容过大，无法生成分享链接。请使用导出 PDF 或长图分享。');
+      return;
+    }
+    var url = window.location.origin + window.location.pathname + '#s=' + compressed;
+    navigator.clipboard.writeText(url).then(function() {
+      showToast('🔗 分享链接已复制（含完整分析结论，可发给团队）');
+    }).catch(function() {
+      showError('复制失败：' + url);
+    });
+  } catch(e) {
+    showError('生成分享链接失败');
+  }
+}
+
+// Try to load shared analysis from URL hash on page load
+(function() {
+  var hash = window.location.hash;
+  if (!hash || hash.indexOf('#s=') !== 0) return;
+  try {
+    var compressed = hash.substring(3);
+    var json = LZString.decompressFromEncodedURIComponent(compressed);
+    var payload = JSON.parse(json);
+    if (payload.m) {
+      document.getElementById('dashboard').classList.add('active');
+      document.getElementById('summaryCards').innerHTML = '<div class=\"card\" style=\"grid-column:1/-1;text-align:center;\"><div class=\"card-label\">📎 共享分析报告</div><div class=\"card-sub\" style=\"margin-top:8px;\">生成时间：' + new Date(payload.t).toLocaleString('zh-CN') + '</div></div>';
+      document.getElementById('conclusionContent').innerHTML = '<div class=\"markdown-body\">' + marked.parse(payload.m) + '</div>';
+      dismissUploadZone();
+      document.getElementById('ctxFiles').textContent = '📎 来自分享链接';
+      window.location.hash = '';
+    }
+  } catch(e) { console.warn('Failed to load shared analysis:', e); }
+})();
+
+// ===== API Calls (unchanged) =====
+async function uploadFile(file, user) {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('user', user);
+
+  const resp = await fetch(BASE_URL + '/files/upload', {
+    method: 'POST',
+    body: fd
+  });
+
+  if (!resp.ok) {
+    const err = await resp.text();
+    throw new Error('文件上传失败 (' + resp.status + '): ' + err);
+  }
+  const data = await resp.json();
+  return data.id;
+}
+
+async function runWorkflow(reviewFileId, bgFileId, user) {
+  const body = {
+    inputs: {
+      review_file: { transfer_method: 'local_file', upload_file_id: reviewFileId, type: 'document' },
+      product_background: { transfer_method: 'local_file', upload_file_id: bgFileId, type: 'document' }
+    },
+    response_mode: 'streaming',
+    user: user
+  };
+
+  const resp = await fetch(BASE_URL + '/workflows/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!resp.ok) {
+    const err = await resp.text();
+    throw new Error('分析失败 (' + resp.status + '): ' + err);
+  }
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      try {
+        const event = JSON.parse(line.slice(6));
+        if (event.event === 'workflow_finished') {
+          reader.cancel();
+          return event.data;
+        }
+        if (event.event === 'error') {
+          throw new Error(event.data?.message || '工作流执行错误');
+        }
+      } catch (e) {
+        if (e.message === '工作流执行错误') throw e;
+      }
+    }
+  }
+
+  throw new Error('流式连接已关闭，未收到完成事件');
+}
+
+// ===== Data Parsing (unchanged) =====
+function stripThinkTags(text) {
+  return text.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
+}
+
+function extractJsonAndMarkdown(rawText) {
+  let text = stripThinkTags(rawText).trim();
+
+  const m = text.match(/---JSON---\s*([\s\S]*?)\s*---MARKDOWN---\s*([\s\S]*)/i);
+  if (m) {
+    try { return { data: JSON.parse(cleanJson(m[1].trim())), markdown: m[2].trim() }; }
+    catch (e) { console.warn('Delimiter JSON parse failed:', e.message); }
+  }
+
+  const fm = text.match(/```json\s*([\s\S]*?)\s*```/);
+  if (fm) {
+    try {
+      return { data: JSON.parse(cleanJson(fm[1].trim())), markdown: text.replace(/```json[\s\S]*?```/, '').trim() };
+    } catch (e) { console.warn('Fenced JSON parse failed:', e.message); }
+  }
+
+  const a = text.indexOf('{'), b = text.lastIndexOf('}');
+  if (a !== -1 && b !== -1 && b > a) {
+    try {
+      return { data: JSON.parse(cleanJson(text.substring(a, b + 1))), markdown: (text.substring(0, a) + text.substring(b + 1)).trim() };
+    } catch (e) { console.warn('Raw JSON parse failed:', e.message); }
+  }
+
+  return { data: null, markdown: text };
+}
+
+function cleanJson(s) {
+  return s.replace(/,(\s*[}\]])/g, '$1').replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F]/g, '');
+}
+
+// ===== Render (unchanged chart logic, adapted table logic) =====
+function destroy(k) { if (charts[k]) { charts[k].destroy(); delete charts[k]; } }
+
+function sentimentTags(label) {
+  var s = (label || '').toString();
+  var tags = [];
+  if (s.includes('正面') || s.includes('良好') || s.includes('好评') || s.includes('推荐')) tags.push('<span class="kpi-tag kpi-tag-success">正面</span>');
+  if (s.includes('负面') || s.includes('差评') || s.includes('糟糕') || s.includes('严重')) tags.push('<span class="kpi-tag kpi-tag-danger">负面</span>');
+  if (s.includes('中性') || s.includes('一般') || s.includes('褒贬不一') || s.includes('混合')) tags.push('<span class="kpi-tag kpi-tag-neutral">中性</span>');
+  if (s.includes('警告') || s.includes('风险') || s.includes('流失')) tags.push('<span class="kpi-tag kpi-tag-warning">风险</span>');
+  if (tags.length === 0) tags.push('<span class="kpi-tag kpi-tag-neutral">' + esc(s.substring(0, 8)) + '...</span>');
+  return tags.join('');
+}
+
+function renderSummaryCards(meta) {
+  var total = meta.total_reviews ?? 0;
+  var avg = meta.avg_rating;
+  var label = meta.sentiment_label || '-';
+  var alerts = meta.alert_count ?? 0;
+
+  var avgCls = !avg ? '' : (avg < 3 ? 'danger' : avg < 3.5 ? 'warning' : 'success');
+  var alertCls = alerts > 0 ? 'warning' : 'success';
+
+  var cards = [
+    '<div class="card">' +
+      '<div class="card-top"><span class="card-icon icon-ink"></span><span class="card-context">评论总数</span></div>' +
+      '<div class="card-value">' + esc(total) + '</div>' +
+      '<div class="card-sub">条有效用户反馈</div>' +
+    '</div>',
+
+    '<div class="card">' +
+      '<div class="card-top"><span class="card-icon icon-' + avgCls + '"></span><span class="card-context">综合均分</span></div>' +
+      '<div class="card-value ' + avgCls + '">' + esc(avg ?? '-') + '</div>' +
+      '<div class="card-sub">满分 5.0 · ' + (avg < 3 ? '需重点关注' : avg < 3.5 ? '有待提升' : avg < 4 ? '整体向好' : '表现优异') + '</div>' +
+    '</div>',
+
+    '<div class="card">' +
+      '<div class="card-top"><span class="card-icon icon-ink"></span><span class="card-context">口碑概况</span></div>' +
+      '<div class="card-tags">' + sentimentTags(label) + '</div>' +
+      '<div class="card-sub clamped-text" title="' + esc(label) + '">' + esc(label) + '</div>' +
+    '</div>',
+
+    '<div class="card">' +
+      '<div class="card-top"><span class="card-icon icon-' + alertCls + '"></span><span class="card-context">告警信号</span></div>' +
+      '<div class="card-value ' + alertCls + '">' + esc(alerts) + '</div>' +
+      '<div class="card-sub">' + (alerts > 0 ? '含评分冲突 / 流失风险' : '暂无异常信号') + '</div>' +
+    '</div>'
+  ];
+
+  document.getElementById('summaryCards').innerHTML = cards.join('');
+}
+
+function renderRatingChart(d) {
+  destroy('rating');
+  const labels = ['5星','4星','3星','2星','1星'];
+  const vals = labels.map(l => d[l] ?? 0);
+  const colors = ['#0050cb','#4285f4','#f4b400','#e37400','#d93025'];
+  const ctx = document.getElementById('chartRating').getContext('2d');
+  charts.rating = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: vals, backgroundColor: colors, borderRadius: 6, borderSkipped: false }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1, color: '#5e6269' }, grid: { color: '#e3e6eb' }, border: { color: '#d0d4db' } },
+        x: { ticks: { color: '#44474e' }, grid: { display: false }, border: { color: '#d0d4db' } }
+      }
+    }
+  });
+}
+
+function renderSubjectivityChart(s) {
+  destroy('subjectivity');
+  const ctx = document.getElementById('chartSubjectivity').getContext('2d');
+  charts.subjectivity = new Chart(ctx, {
+    type: 'doughnut',
+    plugins: [doughnutCenterPlugin],
+    data: {
+      labels: [s.low_label || '理性反馈', s.high_label || '情绪宣泄'],
+      datasets: [{
+        data: [s.low_count ?? 0, s.high_count ?? 0],
+        backgroundColor: ['#4a6984', '#c86b63'],
+        hoverBackgroundColor: ['#3b556c', '#b55a52'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '80%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 18,
+            usePointStyle: true,
+            pointStyle: 'circle',
+            color: '#757575',
+            font: { family: '"Inter", sans-serif', size: 12 }
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(26, 28, 30, 0.9)',
+          titleFont: { family: '"Inter", sans-serif' },
+          bodyFont: { family: '"Inter", sans-serif' },
+          callbacks: { label: ctx => {
+            const all = (ctx.dataset.data[0]||0)+(ctx.dataset.data[1]||0);
+            return ' ' + ctx.label + ': ' + ctx.parsed + ' 条 (' + Math.round(ctx.parsed/all*100) + '%)';
+          }}
+        }
+      }
+    }
+  });
+}
+
+function renderAttitudeGoalChart(m) {
+  destroy('attitudegoal');
+  if (!m || !m.length) { document.getElementById('attitudePanel').parentElement.style.display = 'none'; return; }
+  document.getElementById('attitudePanel').parentElement.style.display = '';
+  const ctx = document.getElementById('chartAttitudeGoal').getContext('2d');
+
+  // 按负向反馈从高到低排序，痛点模块置顶
+  m.sort(function(a, b) {
+    return (b.negative ?? 0) - (a.negative ?? 0);
+  });
+
+  var labels = m.map(function(x) { return x.target; });
+  var posData = m.map(function(x) { return x.positive ?? 0; });
+  var negData = m.map(function(x) { return -(x.negative ?? 0); });
+  var absMax = Math.max.apply(null, posData.concat(negData.map(Math.abs)).concat([1]));
+
+  // 中心参考线插件
+  var centerLinePlugin = {
+    id: 'centerLine',
+    afterDraw: function(chart) {
+      var xScale = chart.scales.x;
+      var yScale = chart.scales.y;
+      var zeroX = xScale.getPixelForValue(0);
+      var ctx = chart.ctx;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(zeroX, yScale.top);
+      ctx.lineTo(zeroX, yScale.bottom);
+      ctx.strokeStyle = '#e0e0e0';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+    }
+  };
+
+  charts.attitudegoal = new Chart(ctx, {
+    type: 'bar',
+    plugins: [centerLinePlugin],
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: '正向',
+          data: posData,
+          backgroundColor: '#4d7c5a',
+          borderRadius: 4,
+          base: 0
+        },
+        {
+          label: '负向',
+          data: negData,
+          backgroundColor: '#c86b63',
+          borderRadius: 4,
+          base: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      stacked: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            pointStyle: 'circle',
+            color: '#757575',
+            font: { family: '"Inter", sans-serif', size: 12 },
+            padding: 24
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              return ctx.dataset.label + ': ' + Math.abs(ctx.raw) + ' 次';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          min: -absMax * 1.2,
+          max: absMax * 1.2,
+          stacked: true,
+          ticks: {
+            stepSize: Math.max(1, Math.round(absMax / 4)),
+            color: '#9e9e9e',
+            font: { family: '"Inter", sans-serif', size: 11 },
+            callback: function(v) { return Math.abs(v); }
+          },
+          grid: {
+            color: '#f5f5f5',
+            lineWidth: 1
+          },
+          border: { display: false }
+        },
+        y: {
+          stacked: true,
+          position: 'left',
+          ticks: {
+            color: '#212121',
+            font: { size: 13, weight: '500', family: '"Inter", sans-serif' },
+            padding: 12
+          },
+          grid: { display: false },
+          border: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// 极坐标玫瑰图：外圈悬浮圆点 + 发散虚线插件
+const polarCustomOutlinePlugin = {
+  id: 'polarCustomOutline',
+  afterDatasetsDraw: function(chart) {
+    if (chart.canvas.id !== 'chartEmotion') return;
+    const { ctx, scales } = chart;
+    var scale = scales.r;
+    var dataset = chart.data.datasets[0];
+    var meta = chart.getDatasetMeta(0);
+
+    ctx.save();
+    meta.data.forEach(function(arc, index) {
+      var angle = arc.startAngle + (arc.endAngle - arc.startAngle) / 2;
+      var centerX = scale.xCenter;
+      var centerY = scale.yCenter;
+
+      var dataValue = dataset.data[index];
+      var radius = scale.getDistanceForValue(dataValue);
+      var targetRadius = radius + 15;
+      var targetX = centerX + Math.cos(angle) * targetRadius;
+      var targetY = centerY + Math.sin(angle) * targetRadius;
+
+      // 发散虚线
+      ctx.beginPath();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = '#d0d4dc';
+      ctx.lineWidth = 1;
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(targetX, targetY);
+      ctx.stroke();
+
+      // 末端悬浮圆点（同色系高饱和）
+      ctx.beginPath();
+      ctx.setLineDash([]);
+      var rawColor = Array.isArray(dataset.backgroundColor) ? dataset.backgroundColor[index] : dataset.backgroundColor;
+      ctx.fillStyle = String(rawColor).replace(/[\d.]+\)$/, '1)');
+      ctx.arc(targetX, targetY, 3.5, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+
+    // 绘制中心白色空心圆（替代 innerRadius，Chart.js v4 polarArea 不支持）
+    var maxRadius = scale.getDistanceForValue(scale.max);
+    var innerR = maxRadius * 0.30;
+    ctx.beginPath();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ffffff';
+    ctx.arc(scale.xCenter, scale.yCenter, innerR, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.restore();
+  }
+};
+
+function renderEmotionChart(em) {
+  destroy('emotion');
+  if (!em || !em.length) return;
+  const ctx = document.getElementById('chartEmotion').getContext('2d');
+
+  var labels = em.map(function(e) { return e.label; });
+  var counts = em.map(function(e) { return e.count ?? 0; });
+
+  var moodColors = em.map(function(e) {
+    switch (e.label) {
+      case '愤怒': return 'rgba(197, 102, 93, 0.45)';
+      case '失望': return 'rgba(215, 134, 125, 0.45)';
+      case '无奈': return 'rgba(164, 142, 154, 0.5)';
+      case '焦虑': return 'rgba(230, 172, 120, 0.45)';
+      case '困惑': return 'rgba(172, 185, 202, 0.5)';
+      case '满意': return 'rgba(122, 156, 132, 0.5)';
+      case '期待': return 'rgba(152, 182, 161, 0.45)';
+      case '惊喜': return 'rgba(108, 142, 173, 0.5)';
+      default: return 'rgba(210, 214, 219, 0.5)';
+    }
+  });
+
+  charts.emotion = new Chart(ctx, {
+    type: 'polarArea',
+    plugins: [polarCustomOutlinePlugin],
+    data: {
+      labels: labels,
+      datasets: [{
+        data: counts,
+        backgroundColor: moodColors,
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: {
+        padding: { top: 25, bottom: 25, left: 30, right: 30 }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(26, 28, 30, 0.9)',
+          titleFont: { family: '"Inter", "Helvetica Neue", sans-serif', size: 12 },
+          bodyFont: { family: '"Inter", "Helvetica Neue", sans-serif', size: 12 },
+          callbacks: {
+            label: function(ctx) {
+              return ' 频次: ' + ctx.raw + ' 次 (' + em[ctx.dataIndex].percentage + '%)';
+            }
+          }
+        }
+      },
+      scales: {
+        r: {
+          startAngle: -Math.PI / 2,
+          grid: {
+            display: true,
+            color: 'rgba(218, 222, 229, 0.4)',
+            lineWidth: 1,
+            borderDash: [2, 4]
+          },
+          angleLines: { display: false },
+          ticks: {
+            display: true,
+            stepSize: 2,
+            color: '#a0a6b0',
+            font: { size: 9, family: '"Inter", sans-serif' },
+            showLabelBackdrop: false,
+            z: 1
+          },
+          pointLabels: {
+            display: true,
+            centerPointLabels: true,
+            padding: 20,
+            font: { size: 12, family: '"Inter", "PingFang SC", sans-serif', weight: '500' },
+            color: '#2e3033'
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderBehaviorCards(intents) {
+  const el = document.getElementById('behaviorCards');
+  if (!intents || !intents.length) { el.innerHTML = '<p style="color:var(--mute);font-size:14px;">未检测到明确的行为意图信号</p>'; return; }
+  el.innerHTML = intents.map(i => `
+    <div class="behavior-card">
+      <div class="b-label">${esc(i.label)}</div>
+      <div class="b-count">${i.count ?? 0}<span> 次</span></div>
+      <div class="b-risk"><span class="badge badge-${i.risk==='高'?'high':i.risk==='中'?'mid':'low'} badge-lg">${i.risk || '-'}</span></div>
+      ${(i.quotes||[]).length ? '<ul class="quote-list">'+i.quotes.map(q=>'<li><span class="q-mark">&ldquo;</span>'+esc(q)+'</li>').join('')+'</ul>' : ''}
+    </div>`).join('');
+}
+
+function renderInfoSources(sources) {
+  const panel = document.getElementById('infoSourcePanel');
+  const el = document.getElementById('infoSources');
+  if (!sources || !sources.length) { panel.style.display = 'none'; return; }
+  panel.style.display = '';
+  const max = Math.max(...sources.map(s => s.count ?? 0), 1);
+  el.innerHTML = sources.map(s =>
+    `<div class="source-bar">
+      <span class="s-label">${esc(s.label)}</span>
+      <span class="s-track"><span class="s-fill" style="width:${Math.round((s.count??0)/max*100)}%"></span></span>
+      <span class="s-count">${s.count ?? 0} (${s.percentage ?? 0}%)</span>
+    </div>`
+  ).join('');
+}
+
+// ===== Table rendering (adapted for tabbed panels) =====
+function quotesHtml(qs) {
+  if (!qs || !qs.length) return '';
+  return '<ul class="quote-list">'+qs.map(q=>'<li>'+esc(q)+'</li>').join('')+'</ul>';
+}
+
+function renderTableBody(rows, cols) {
+  if (!rows || !rows.length) return '';
+  return `<thead><tr>${cols.map(c=>'<th>'+c+'</th>').join('')}</tr></thead>
+    <tbody>${rows.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')}</tbody>`;
+}
+
+function updateBadge(tabName, count) {
+  const badge = document.getElementById('badge-' + tabName);
+  if (badge) badge.textContent = count;
+}
+
+function renderAll(data, markdown) {
+  document.getElementById('dashboard').classList.add('active');
+
+  if (data.meta) renderSummaryCards(data.meta);
+  if (data.rating_distribution) renderRatingChart(data.rating_distribution);
+  if (data.subjectivity) renderSubjectivityChart(data.subjectivity);
+  if (data.attitude_goal_matrix) renderAttitudeGoalChart(data.attitude_goal_matrix);
+  if (data.emotion_distribution) renderEmotionChart(data.emotion_distribution);
+  if (data.behavioral_intentions) renderBehaviorCards(data.behavioral_intentions);
+  if (data.info_sources) renderInfoSources(data.info_sources);
+
+  // Tabbed tables
+  if (data.defects) {
+    document.getElementById('defectsTable').innerHTML = '<table>' + renderTableBody(
+      data.defects.map(d => ['#'+d.rank,'<strong>'+esc(d.issue)+'</strong>',esc(d.module),d.count,d.adjusted_weight??d.count,quotesHtml(d.quotes)]),
+      ['排名','问题','模块','提及','权重','用户原声']
+    ) + '</table>';
+    updateBadge('defects', data.defects.length);
+  } else {
+    document.getElementById('tab-defects').querySelector('.table-wrap').innerHTML = '<p style="color:var(--mute);font-size:14px;padding:16px;">无数据</p>';
+    updateBadge('defects', 0);
+  }
+
+  if (data.highlights) {
+    document.getElementById('highlightsTable').innerHTML = '<table>' + renderTableBody(
+      data.highlights.map(h => ['#'+h.rank,'<strong>'+esc(h.highlight)+'</strong>',esc(h.module),h.count,quotesHtml(h.quotes)]),
+      ['排名','亮点','模块','提及','用户原声']
+    ) + '</table>';
+    updateBadge('highlights', data.highlights.length);
+  } else {
+    document.getElementById('tab-highlights').querySelector('.table-wrap').innerHTML = '<p style="color:var(--mute);font-size:14px;padding:16px;">无数据</p>';
+    updateBadge('highlights', 0);
+  }
+
+  if (data.feature_requests) {
+    document.getElementById('requestsTable').innerHTML = '<table>' + renderTableBody(
+      data.feature_requests.map(r => ['<span class="badge badge-category">'+esc(r.category)+'</span>','<strong>'+esc(r.request)+'</strong>',r.count,quotesHtml(r.quotes)]),
+      ['类别','具体诉求','提及','用户原声']
+    ) + '</table>';
+    updateBadge('requests', data.feature_requests.length);
+  } else {
+    document.getElementById('tab-requests').querySelector('.table-wrap').innerHTML = '<p style="color:var(--mute);font-size:14px;padding:16px;">无数据</p>';
+    updateBadge('requests', 0);
+  }
+
+  if (data.conflicts) {
+    document.getElementById('conflictsTable').innerHTML = '<table>' + renderTableBody(
+      data.conflicts.map(c => [esc(c.user),c.rating+'⭐',esc(c.summary),'<span class="badge badge-high">'+esc(c.type)+'</span>','<strong>'+esc(c.adjusted)+'</strong>']),
+      ['用户','评分','文本摘要','冲突类型','修正态度']
+    ) + '</table>';
+    updateBadge('conflicts', data.conflicts.length);
+  } else {
+    document.getElementById('tab-conflicts').querySelector('.table-wrap').innerHTML = '<p style="color:var(--mute);font-size:14px;padding:16px;">无数据</p>';
+    updateBadge('conflicts', 0);
+  }
+
+  if (data.churn_risks) {
+    document.getElementById('churnTable').innerHTML = '<table>' + renderTableBody(
+      data.churn_risks.map(r => [esc(r.user),esc(r.intent),esc(r.emotion),'<span class="badge badge-'+(r.level==='最高级'?'high':r.level==='高级'?'mid':'low')+'">'+esc(r.level)+'</span>']),
+      ['用户','行为意图','情绪','预警等级']
+    ) + '</table>';
+    updateBadge('churn', data.churn_risks.length);
+  } else {
+    document.getElementById('tab-churn').querySelector('.table-wrap').innerHTML = '<p style="color:var(--mute);font-size:14px;padding:16px;">无数据</p>';
+    updateBadge('churn', 0);
+  }
+
+  if (data.priority_board) {
+    document.getElementById('priorityTable').innerHTML = '<table>' + renderTableBody(
+      data.priority_board.map(b => ['<span class="badge badge-'+b.priority.toLowerCase()+'">'+esc(b.priority)+'</span>','<strong>'+esc(b.issue)+'</strong>',esc(b.impact),esc(b.evidence),quotesHtml(b.quotes),esc(b.timeline)]),
+      ['优先级','问题/需求','影响范围','证据强度','用户原声','建议排期']
+    ) + '</table>';
+    updateBadge('priority', data.priority_board.length);
+  } else {
+    document.getElementById('tab-priority').querySelector('.table-wrap').innerHTML = '<p style="color:var(--mute);font-size:14px;padding:16px;">无数据</p>';
+    updateBadge('priority', 0);
+  }
+
+  // Reset to first tab
+  switchTab('defects');
+
+  const rawMd = data.conclusion_markdown || markdown || '';
+  if (rawMd) {
+    var tempDiv = document.createElement('div');
+    tempDiv.innerHTML = marked.parse(rawMd);
+
+    var headers = tempDiv.querySelectorAll('h3');
+    var moatHeader, flawHeader;
+    headers.forEach(function(h) {
+      if (h.textContent.includes('产品护城河')) moatHeader = h;
+      if (h.textContent.includes('致命短板')) flawHeader = h;
+    });
+
+    if (moatHeader && flawHeader) {
+      // 收集紧随 h3 之后的内容（直到下一个 h3 或末尾）
+      function collectUntilNextH3(startEl) {
+        var items = [];
+        var el = startEl.nextElementSibling;
+        while (el && el.tagName !== 'H3') {
+          items.push(el.cloneNode(true));
+          el = el.nextElementSibling;
+        }
+        return items;
+      }
+
+      var moatItems = collectUntilNextH3(moatHeader);
+      var flawItems = collectUntilNextH3(flawHeader);
+
+      // 构建双栏网格
+      var grid = document.createElement('div');
+      grid.className = 'structured-summary-grid';
+
+      var moatCol = document.createElement('div');
+      moatCol.className = 'summary-col moat-col';
+      moatCol.innerHTML = '<h3>🏰 产品护城河</h3>';
+      moatItems.forEach(function(el) { moatCol.appendChild(el); });
+      grid.appendChild(moatCol);
+
+      var flawCol = document.createElement('div');
+      flawCol.className = 'summary-col flaw-col';
+      flawCol.innerHTML = '<h3>💔 致命短板</h3>';
+      flawItems.forEach(function(el) { flawCol.appendChild(el); });
+      grid.appendChild(flawCol);
+
+      // 删除旧的两个 h3 及其之间的兄弟节点
+      var del = moatHeader.nextElementSibling;
+      while (del && del !== flawHeader) {
+        var nextDel = del.nextElementSibling;
+        del.remove();
+        del = nextDel;
+      }
+      moatHeader.remove();
+      flawHeader.remove();
+
+      // 在剩余 DOM 前插入网格（插到第一个 <h3> 前，或追加到容器末尾）
+      var remainingH3 = tempDiv.querySelector('h3');
+      if (remainingH3 && remainingH3.parentNode) {
+        remainingH3.parentNode.insertBefore(grid, remainingH3);
+      } else {
+        tempDiv.appendChild(grid);
+      }
+    }
+
+    document.getElementById('conclusionContent').innerHTML = tempDiv.innerHTML;
+  } else {
+    document.getElementById('conclusionContent').innerHTML = '<p style="color:var(--mute);">暂无深度总结内容</p>';
+  }
+
+  hideSpiral();
+  dismissUploadZone();
+  injectPanelActions();
+  var reviewFile = document.getElementById('reviewFile').files[0];
+  var bgFile = document.getElementById('backgroundFile').files[0];
+  updateContextBar(reviewFile ? reviewFile.name : '', bgFile ? bgFile.name : '');
+  var mainArea = document.getElementById('mainArea');
+  mainArea.scrollTo({ top: 0, behavior: 'smooth' });
+  setStatus(true, '✅ 分析完成', 'done');
+}
+
+function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+
+// ===== v3.0: Scene Switching =====
+function switchScene(scene) {
+  currentScene = scene;
+  document.querySelectorAll('.scene-tab').forEach(function(tab) {
+    tab.classList.toggle('active', tab.dataset.scene === scene);
+  });
+  // 更新上传卡片标签
+  var cardReview = document.getElementById('cardReview');
+  var cardBg = document.getElementById('cardBg');
+  var reviewLabel = cardReview.querySelector('.uc-label');
+  var bgLabel = cardBg.querySelector('.uc-label');
+  if (scene === 'feedback') {
+    reviewLabel.textContent = '用户评论数据';
+    bgLabel.textContent = '产品背景文档（可选）';
+  } else {
+    reviewLabel.textContent = '竞品信息文件';
+    bgLabel.textContent = '产品背景文档（可选）';
+  }
+}
+
+// ===== v3.0: Mode UI =====
+function updateModeUI() {
+  // 选中状态由 CSS :has() 处理，无需额外 JS
+}
+
+function getSelectedMode() {
+  var el = document.querySelector('input[name="analysisMode"]:checked');
+  return el ? el.value : 'multi-agent';
+}
+
+// ===== v3.0: Agent Timeline =====
+var AGENT_PIPELINE = [
+  { id: 'Preprocessor', label: '数据预处理' },
+  { id: 'SubjectivityFilter', label: '主观性过滤' },
+  { id: 'FiveDimExtractor', label: '五维特征抽取' },
+  { id: 'CrossValidator', label: '交叉验证' },
+  { id: 'BusinessAnalyzer', label: '业务分析' }
+];
+
+function initTimeline() {
+  var track = document.getElementById('timelineTrack');
+  track.innerHTML = '';
+  agentResults = {};
+  AGENT_PIPELINE.forEach(function(agent) {
+    var node = document.createElement('div');
+    node.className = 'timeline-node waiting';
+    node.id = 'tl-' + agent.id;
+    node.innerHTML =
+      '<div class="tl-header">' +
+        '<span class="tl-label">' + agent.label + '</span>' +
+        '<span class="tl-duration"></span>' +
+      '</div>' +
+      '<div class="tl-message">等待中</div>' +
+      '<div class="tl-detail" id="detail-' + agent.id + '"></div>';
+    track.appendChild(node);
+  });
+  document.getElementById('agentTimeline').classList.add('active');
+}
+
+function updateTimelineNode(agentId, state, msg, durationMs) {
+  var node = document.getElementById('tl-' + agentId);
+  if (!node) return;
+  node.className = 'timeline-node ' + state;
+  var msgEl = node.querySelector('.tl-message');
+  var durEl = node.querySelector('.tl-duration');
+  if (msgEl) msgEl.textContent = msg || '';
+  if (durEl && durationMs) durEl.textContent = (durationMs / 1000).toFixed(1) + 's';
+  // 完成后可点击查看详情
+  if (state === 'done') {
+    node.querySelector('.tl-label').onclick = function() { toggleAgentDetail(agentId); };
+  }
+}
+
+function toggleAgentDetail(agentId) {
+  var detail = document.getElementById('detail-' + agentId);
+  if (!detail) return;
+  var result = agentResults[agentId];
+  if (result) {
+    detail.textContent = JSON.stringify(result, null, 2);
+    detail.classList.toggle('open');
+  }
+}
+
+// ===== v3.0: Multi-Agent SSE Analysis =====
+async function runMultiAgent(reviewText, bgText) {
+  initTimeline();
+  setStatus(true, '正在启动多 Agent 分析...');
+
+  var mode = currentScene === 'competitor' ? 'competitor' : 'feedback';
+
+  // 启动分析
+  var startResp = await fetch(BASE_URL + '/orch/run?mode=' + mode, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ review_text: reviewText, bg_text: bgText })
+  });
+  if (!startResp.ok) {
+    var err = await startResp.json().catch(function() { return {}; });
+    throw new Error(err.error || '启动分析失败');
+  }
+
+  // 连接 SSE 进度流
+  var eventSource = new EventSource(BASE_URL + '/orch/events');
+  return new Promise(function(resolve, reject) {
+    eventSource.addEventListener('agent_started', function(e) {
+      var data = JSON.parse(e.data);
+      updateTimelineNode(data.agent, 'running', data.message || '执行中...');
+    });
+    eventSource.addEventListener('agent_completed', function(e) {
+      var data = JSON.parse(e.data);
+      updateTimelineNode(data.agent, 'done', '完成', data.duration_ms);
+    });
+    eventSource.addEventListener('workflow_completed', function(e) {
+      eventSource.close();
+      var data = JSON.parse(e.data);
+      if (data.status === 'succeeded') {
+        setStatus(true, '分析完成', 'done');
+        hideSpiral();
+        document.getElementById('dashboard').classList.add('active');
+        var outputs = data.outputs;
+        // 存储各 Agent 中间结果供时间线查看
+        var agentKeys = ['Preprocessor', 'SubjectivityFilter', 'FiveDimExtractor', 'CrossValidator', 'BusinessAnalyzer'];
+        agentKeys.forEach(function(k) { if (outputs[k]) agentResults[k] = outputs[k]; });
+        renderAll(outputs, outputs.conclusion_markdown || '');
+        resolve(outputs);
+      } else {
+        reject(new Error('分析未成功完成'));
+      }
+    });
+    eventSource.addEventListener('error', function(e) {
+      eventSource.close();
+      if (e.data) {
+        var data = JSON.parse(e.data);
+        updateTimelineNode(data.agent, 'error', data.message);
+      }
+      reject(new Error('分析过程出错'));
+    });
+    eventSource.onerror = function() {
+      // EventSource 连接错误（网络中断等）
+      if (eventSource.readyState === EventSource.CLOSED) {
+        // 正常关闭时不处理
+      }
+    };
+  });
+}
+
+// ===== Main Flow =====
+async function runAnalysis() {
+  var reviewFile = document.getElementById('reviewFile').files[0];
+  var bgFile = document.getElementById('backgroundFile').files[0];
+  var mode = getSelectedMode();
+
+  // 必填：用户评论 / 竞品信息
+  if (!reviewFile) {
+    var fileLabel = currentScene === 'feedback' ? '用户评论数据' : '竞品信息文件';
+    showError('请上传' + fileLabel);
+    return;
+  }
+
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+
+  try {
+    if (mode === 'multi-agent') {
+      // ---- 多 Agent 深度模式 ----
+      var reviewText = await reviewFile.text();
+      var bgText = bgFile ? await bgFile.text() : '';
+      setStatus(true, '正在启动多 Agent 深度分析...');
+      showSpiral('AI 多 Agent 协作分析中，进度可查看时间线…');
+      await runMultiAgent(reviewText, bgText);
+      dismissUploadZone();
+      document.getElementById('mainArea').scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // ---- 单工作流快速模式 (Dify) ----
+      if (!bgFile) { showError('快速模式需要上传产品背景文档'); btn.disabled = false; btn.classList.remove('loading'); return; }
+      var user = 'web-' + Date.now();
+      setStatus(true, '正在上传文件...');
+      var fid1 = await uploadFile(reviewFile, user);
+      var fid2 = await uploadFile(bgFile, user);
+      setStatus(true, 'AI 正在深度分析中（流式连接，可防超时）...');
+      showSpiral('AI 正在逐条解读用户反馈...');
+      var result = await runWorkflow(fid1, fid2, user);
+      if (!result.outputs) throw new Error('返回数据异常');
+      if (result.status !== 'succeeded') throw new Error(result.error || '工作流执行失败');
+      var out = result.outputs;
+      var key = Object.keys(out).find(function(k) { return /report|text|final/i.test(k); }) || Object.keys(out)[0];
+      var raw = out[key] || JSON.stringify(out);
+      var parsed = extractJsonAndMarkdown(raw);
+      if (parsed.data) {
+        renderAll(parsed.data, parsed.markdown);
+      } else {
+        document.getElementById('dashboard').classList.add('active');
+        document.getElementById('summaryCards').innerHTML = '<div class="card" style="grid-column:1/-1;text-align:center;"><div class="card-label">LLM 未输出结构化 JSON，以下为文本报告</div></div>';
+        document.getElementById('conclusionContent').innerHTML = marked.parse(raw);
+        hideSpiral();
+        setStatus(true, '分析完成（降级为文本模式）', 'done');
+        dismissUploadZone();
+        document.getElementById('mainArea').scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  } catch (err) {
+    showError(err.message);
+    hideSpiral();
+    setStatus(true, '分析失败', 'error');
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+// ===== Spiral Loading Animation =====
+var spiralAnimId = null;
+var spiralStartedAt = 0;
+var spiralParticles = [];
+
+function initSpiral() {
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  var group = document.getElementById('spiralGroup');
+  var path = document.getElementById('spiralPath');
+  path.setAttribute('stroke-width', '4.3');
+
+  for (var i = 0; i < 86; i++) {
+    var circle = document.createElementNS(SVG_NS, 'circle');
+    circle.setAttribute('fill', 'currentColor');
+    group.appendChild(circle);
+    spiralParticles.push(circle);
+  }
+
+  function pointFn(progress, detailScale) {
+    var t = progress * Math.PI * 2;
+    var angle = t * 4;
+    var radius = 8 + (1 - Math.cos(t)) * (8.5 + detailScale * 2.4);
+    return {
+      x: 50 + Math.cos(angle) * radius * 1.0,
+      y: 50 + Math.sin(angle) * radius * 1.0
+    };
+  }
+
+  function buildPath(detailScale) {
+    var d = '';
+    for (var i = 0; i <= 480; i++) {
+      var p = pointFn(i / 480, detailScale);
+      d += (i === 0 ? 'M' : 'L') + ' ' + p.x.toFixed(2) + ' ' + p.y.toFixed(2) + ' ';
+    }
+    return d;
+  }
+
+  function getParticle(index, progress, detailScale) {
+    var tailOffset = index / 85;
+    var p = pointFn(((progress - tailOffset * 0.28) % 1 + 1) % 1, detailScale);
+    var fade = Math.pow(1 - tailOffset, 0.56);
+    return { x: p.x, y: p.y, r: 0.9 + fade * 2.7, opacity: 0.04 + fade * 0.96 };
+  }
+
+  spiralStartedAt = performance.now();
+  function render(now) {
+    var time = now - spiralStartedAt;
+    var progress = (time % 7800) / 7800;
+    var pulseProgress = (time % 6800) / 6800;
+    var detailScale = 0.52 + ((Math.sin(pulseProgress * Math.PI * 2 + 0.55) + 1) / 2) * 0.48;
+
+    path.setAttribute('d', buildPath(detailScale));
+    spiralParticles.forEach(function(node, i) {
+      var p = getParticle(i, progress, detailScale);
+      node.setAttribute('cx', p.x.toFixed(2));
+      node.setAttribute('cy', p.y.toFixed(2));
+      node.setAttribute('r', p.r.toFixed(2));
+      node.setAttribute('opacity', p.opacity.toFixed(3));
+    });
+    spiralAnimId = requestAnimationFrame(render);
+  }
+
+  spiralAnimId = requestAnimationFrame(render);
+}
+
+function showSpiral(msg) {
+  document.getElementById('spiralText').textContent = msg || '正在深度分析用户反馈…';
+  document.getElementById('loadingSpiral').classList.add('active');
+  if (!spiralAnimId) initSpiral();
+  spiralStartedAt = performance.now();
+}
+
+function hideSpiral() {
+  document.getElementById('loadingSpiral').classList.remove('active');
+}
+
+// ===== Init: Tab click bindings + Scroll Spy =====
+document.addEventListener('DOMContentLoaded', function() {
+  // Tab click bindings
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      switchTab(this.dataset.tab);
+    });
+  });
+
+  // Sidebar nav link click bindings (scroll main-area)
+  document.querySelectorAll('.sidebar-nav a').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      var zoneId = this.dataset.zone;
+      var zoneMap = {
+        'overview': 'zone-overview',
+        'charts': 'zone-charts',
+        'insights': 'zone-insights',
+        'conclusion': 'zone-conclusion'
+      };
+      var id = zoneMap[zoneId];
+      if (id) scrollToZone(id);
+    });
+  });
+
+  // Scroll Spy — IntersectionObserver (root = mainArea)
+  var sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+  var zoneMapReverse = {};
+  sidebarLinks.forEach(function(link) {
+    zoneMapReverse[link.dataset.zone] = link;
+  });
+
+  var mainArea = document.getElementById('mainArea');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        sidebarLinks.forEach(function(l) { l.classList.remove('active'); });
+        var zoneEl = entry.target;
+        var zoneId = zoneEl.id.replace('zone-', '');
+        var link = zoneMapReverse[zoneId];
+        if (link) link.classList.add('active');
+      }
+    });
+  }, {
+    root: mainArea,
+    rootMargin: '-40px 0px -60% 0px',
+    threshold: 0
+  });
+
+  ['zone-overview', 'zone-charts', 'zone-insights', 'zone-conclusion'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+});
+</script>
+</body>
+</html>
