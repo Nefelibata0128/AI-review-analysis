@@ -26,7 +26,17 @@ import threading
 import queue
 from pathlib import Path
 
-PORT = 3000
+# 加载 .env 环境变量
+_env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+if os.path.exists(_env_path):
+    with open(_env_path, "r", encoding="utf-8") as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _k, _v = _line.split("=", 1)
+                os.environ.setdefault(_k.strip(), _v.strip())
+
+PORT = 5000
 DIFY_BASE = "https://api.dify.ai/v1"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
 
@@ -257,15 +267,19 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
 
     def _run_analysis_thread(self, review_text: str, bg_text: str, mode: str, event_queue: queue.Queue):
         """后台线程：运行编排器，将事件推送到队列"""
+        print("DEBUG: analysis thread started", flush=True)
         from orchestrator import Orchestrator
 
         orch = Orchestrator()
-        # 替换 orchestrator 的 sse emitter，改为推送到共享队列
         orch.sse.event_queue = event_queue
 
         try:
             orch.run_analysis(review_text, bg_text, mode)
+            print("DEBUG: analysis thread completed OK", flush=True)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"DEBUG: analysis thread error: {e}", flush=True)
             error_event = {
                 "event": "error",
                 "data": json.dumps({"agent": "Orchestrator", "message": str(e)}, ensure_ascii=False),

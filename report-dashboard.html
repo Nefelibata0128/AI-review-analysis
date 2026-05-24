@@ -563,13 +563,19 @@ async function runMulti(reviewText,bgText){
   await fetch(BASE+'/orch/run?mode='+mode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_text:reviewText,bg_text:bgText})});
   return new Promise((resolve,reject)=>{
     let es=new EventSource(BASE+'/orch/events');
+    let connected=false;
+    es.onopen=()=>{connected=true;setStatus(true,'SSE 已连接，等待分析...')};
     es.addEventListener('agent_started',e=>{let d=JSON.parse(e.data);updTL(d.agent,'run',d.message||'执行中...')});
     es.addEventListener('agent_completed',e=>{let d=JSON.parse(e.data);updTL(d.agent,'ok','完成',d.duration_ms)});
     es.addEventListener('workflow_completed',e=>{es.close();let d=JSON.parse(e.data);
       setStatus(true,'分析完成','done');let out=d.outputs;
       ['Preprocessor','SubjectivityFilter','FiveDimExtractor','CrossValidator','BusinessAnalyzer'].forEach(k=>{if(out[k])agentResults[k]=out[k]});
       allData=out;renderAll(out,out.conclusion_markdown||'');resolve(out)});
-    es.addEventListener('error',e=>{es.close();updTL(e.data?JSON.parse(e.data).agent:'','err',e.data?JSON.parse(e.data).message:'出错');reject(new Error('分析出错'))});
+    es.onerror=e=>{es.close();
+      let msg=connected?'SSE 连接中断':'无法连接 SSE ('+BASE+'/orch/events)';
+      setStatus(true,msg,'error');toast(msg);reject(new Error(msg))};
+    // 超时保护
+    setTimeout(()=>{if(!connected){es.close();setStatus(true,'SSE 连接超时','error');toast('SSE 连接超时，请检查网络');reject(new Error('SSE timeout'))}},10000);
   });
 }
 
