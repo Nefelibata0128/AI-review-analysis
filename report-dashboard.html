@@ -514,6 +514,8 @@ function updTL(id,state,msg,dur){
 }
 
 // ===== Run =====
+function isBinary(f){return f&&/\.(xlsx|xls|docx)$/i.test(f.name)}
+
 async function run(){
   let f1=document.getElementById('file1').files[0],f2=document.getElementById('file2').files[0];
   if(!f1){toast(scene==='feedback'?'请上传用户评论数据':'请上传竞品信息文件');return}
@@ -522,12 +524,19 @@ async function run(){
 
   try{
     if(mode==='multi'){
-      // 统一走 FormData，proxy 端自动识别 .txt/.docx/.xlsx 并解析
-      let fd=new FormData();
-      fd.append('review_file',f1);
-      if(f2)fd.append('bg_file',f2);
-      setStatus(true,'启动多 Agent 分析...');
-      initTL();await runMultiFD(fd);
+      if(isBinary(f1)||isBinary(f2)){
+        // 二进制文件走 FormData，proxy 端解析
+        let fd=new FormData();
+        fd.append('review_file',f1);
+        if(f2)fd.append('bg_file',f2);
+        setStatus(true,'启动多 Agent 分析...');
+        initTL();await runMultiFD(fd);
+      }else{
+        // 纯文本直接发送
+        let t1=await f1.text(),t2=f2?await f2.text():'';
+        setStatus(true,'启动多 Agent 分析...');
+        initTL();await runMultiText(t1,t2);
+      }
     }else{
       if(!f2){toast('快速模式需要上传产品背景文档');btn.disabled=false;btn.classList.remove('loading');return}
       setStatus(true,'上传文件中...');
@@ -563,6 +572,8 @@ async function runMulti(reviewText,bgText){
     es.addEventListener('error',e=>{es.close();updTL(e.data?JSON.parse(e.data).agent:'','err',e.data?JSON.parse(e.data).message:'出错');reject(new Error('分析出错'))});
   });
 }
+
+function runMultiText(t1,t2){return runMulti(t1,t2)} // 文本走 JSON
 
 async function runMultiFD(fd){
   let mode=scene==='competitor'?'competitor':'feedback';

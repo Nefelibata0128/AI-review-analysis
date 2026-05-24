@@ -19,7 +19,7 @@ import json
 import ssl
 import os
 import sys
-import cgi
+import email.parser
 import io
 import threading
 import queue
@@ -33,6 +33,38 @@ UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like 
 def get_api_key():
     """从环境变量读取 Dify API Key"""
     return os.environ.get("DIFY_API_KEY", "")
+
+
+def parse_multipart(body: bytes, content_type: str) -> dict:
+    """解析 multipart/form-data，返回 {field_name: value_or_dict}"""
+    from email.message import Message
+    msg = Message()
+    msg["Content-Type"] = content_type
+    msg.set_payload(body)
+
+    parts = {}
+    if msg.is_multipart():
+        for part in msg.get_payload():
+            disp = part.get("Content-Disposition", "")
+            if "form-data" not in disp:
+                continue
+            name = None
+            filename = None
+            for p in disp.split(";"):
+                p = p.strip()
+                if p.startswith("name="):
+                    name = p[5:].strip('"')
+                elif p.startswith("filename="):
+                    filename = p[9:].strip('"')
+            payload = part.get_payload(decode=True)
+            if payload is None:
+                payload = b""
+            if filename:
+                parts[name] = {"file": io.BytesIO(payload), "filename": filename}
+                parts[name].file = io.BytesIO(payload)
+            else:
+                parts[name] = payload.decode("utf-8", errors="replace")
+    return parts
 
 
 def parse_docx(file_data: bytes) -> str:
@@ -73,39 +105,34 @@ def handle_file_upload(form: dict) -> tuple[str, str]:
     Returns:
         (review_text, bg_text): 评论文本和产品背景文本
     """
+    def _extract(item) -> str:
+        """从表单项中提取文本内容"""
+        if isinstance(item, dict) and "file" in item:
+            data = item["file"].read()
+            filename = (item.get("filename", "") or "").lower()
+            if filename.endswith(".docx"):
+                return parse_docx(data)
+            elif filename.endswith((".xlsx", ".xls")):
+                return parse_xlsx(data)
+            else:
+                return data.decode("utf-8", errors="replace")
+        elif isinstance(item, bytes):
+            return item.decode("utf-8", errors="replace")
+        elif isinstance(item, str):
+            return item
+        return ""
+
     review_text = ""
     bg_text = ""
 
     for key in ("review_file", "review_text"):
         if key in form:
-            item = form[key]
-            if hasattr(item, "file"):
-                data = item.file.read()
-                filename = (item.filename or "").lower()
-                if filename.endswith(".docx"):
-                    review_text = parse_docx(data)
-                elif filename.endswith((".xlsx", ".xls")):
-                    review_text = parse_xlsx(data)
-                else:
-                    review_text = data.decode("utf-8", errors="replace")
-            elif isinstance(item, (str, bytes)):
-                review_text = item.decode("utf-8", errors="replace") if isinstance(item, bytes) else item
+            review_text = _extract(form[key])
             break
 
     for key in ("bg_file", "bg_text", "product_background"):
         if key in form:
-            item = form[key]
-            if hasattr(item, "file"):
-                data = item.file.read()
-                filename = (item.filename or "").lower()
-                if filename.endswith(".docx"):
-                    bg_text = parse_docx(data)
-                elif filename.endswith((".xlsx", ".xls")):
-                    bg_text = parse_xlsx(data)
-                else:
-                    bg_text = data.decode("utf-8", errors="replace")
-            elif isinstance(item, (str, bytes)):
-                bg_text = item.decode("utf-8", errors="replace") if isinstance(item, bytes) else item
+            bg_text = _extract(form[key])
             break
 
     return review_text, bg_text
@@ -188,10 +215,9 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
 
         try:
             if "multipart/form-data" in content_type:
-                form = cgi.parse(self.rfile, headers=self.headers, environ={
-                    "REQUEST_METHOD": "POST",
-                    "CONTENT_TYPE": content_type,
-                })
+                content_length = int(self.headers.get("Content-Length", 0))
+                body = self.rfile.read(content_length)
+                form = parse_multipart(body, content_type)
                 review_text, bg_text = handle_file_upload(form)
             else:
                 content_length = int(self.headers.get("Content-Length", 0))
