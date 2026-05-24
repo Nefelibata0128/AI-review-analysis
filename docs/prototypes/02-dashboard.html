@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>仪表盘 — AI评论分析平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --font-sans: "Inter", "Noto Sans SC", -apple-system, BlinkMacSystemFont, sans-serif;
+  --surface: #ffffff;
+  --surface-card: #f8f9fa;
+  --surface-soft: #f1f3f4;
+  --ink: #1a1c1e;
+  --body: #444746;
+  --mute: #757575;
+  --stone: #9aa0a6;
+  --primary: #0050cb;
+  --primary-container: #e8edff;
+  --accent-green: #1e8e3e;
+  --accent-green-soft: #e8f5e9;
+  --accent-red: #c5221f;
+  --accent-red-soft: #fce8e6;
+  --accent-blue: #1967d2;
+  --accent-blue-soft: #e8f0fe;
+  --hairline: #dadce0;
+  --hairline-soft: #e8eaed;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --container-max: 1280px;
+  --grid-gap: 16px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--surface-soft);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+/* Top Bar */
+.top-bar {
+  background: var(--surface); border-bottom: 1px solid var(--hairline);
+  padding: 12px 24px; display: flex; justify-content: space-between; align-items: center;
+  position: sticky; top: 0; z-index: 10;
+}
+.top-bar .title { font-size: 15px; font-weight: 600; }
+.top-bar .meta { font-size: 12px; color: var(--mute); }
+.top-bar .actions { display: flex; gap: 8px; }
+.top-bar .btn-sm {
+  padding: 6px 14px; border: 1px solid var(--hairline); border-radius: var(--radius-sm);
+  background: var(--surface); font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+  cursor: pointer; color: var(--body); transition: all .15s;
+}
+.top-bar .btn-sm:hover { background: var(--surface-soft); }
+.top-bar .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.top-bar .btn-primary:hover { background: #0044b5; }
+
+/* Main Container */
+.main { max-width: var(--container-max); margin: 0 auto; padding: 24px; }
+
+/* Grid System — 12 columns */
+.grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--grid-gap); }
+.col-3 { grid-column: span 3; }
+.col-4 { grid-column: span 4; }
+.col-8 { grid-column: span 8; }
+.col-12 { grid-column: span 12; }
+
+/* KPI Cards */
+.kpi-card {
+  background: var(--surface); border: 1px solid var(--hairline-soft);
+  border-radius: var(--radius-lg); padding: 20px;
+  box-shadow: var(--shadow-card);
+}
+.kpi-card .kpi-label { font-size: 12px; font-weight: 500; color: var(--mute); text-transform: uppercase; letter-spacing: .5px; }
+.kpi-card .kpi-value { font-size: 32px; font-weight: 700; margin: 4px 0; }
+.kpi-card .kpi-sub { font-size: 12px; color: var(--mute); }
+.kpi-trend-up { color: var(--accent-green); }
+.kpi-trend-down { color: var(--accent-red); }
+
+.kpi-warn { border-left: 3px solid var(--accent-red); }
+.kpi-good { border-left: 3px solid var(--accent-green); }
+.kpi-neutral { border-left: 3px solid var(--primary); }
+
+/* Chart Card */
+.chart-card {
+  background: var(--surface); border: 1px solid var(--hairline-soft);
+  border-radius: var(--radius-lg); padding: 20px;
+  box-shadow: var(--shadow-card);
+}
+.chart-card .chart-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--ink); }
+.chart-card .chart-body {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 200px; background: var(--surface-soft);
+  border-radius: var(--radius-md); color: var(--mute); font-size: 13px;
+}
+
+/* Emotion Tags */
+.emotion-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.emotion-tag {
+  padding: 4px 12px; border-radius: var(--radius-full);
+  font-size: 12px; font-weight: 500;
+}
+.et-red { background: var(--accent-red-soft); color: var(--accent-red); }
+.et-blue { background: var(--accent-blue-soft); color: var(--accent-blue); }
+.et-green { background: var(--accent-green-soft); color: var(--accent-green); }
+
+/* Tab Nav */
+.tab-nav { display: flex; gap: 0; border-bottom: 2px solid var(--hairline-soft); margin-bottom: 12px; }
+.tab-btn {
+  padding: 10px 16px; border: none; background: none;
+  font-family: var(--font-sans); font-size: 13px; font-weight: 500;
+  color: var(--mute); cursor: pointer; transition: all .15s;
+  border-bottom: 2px solid transparent; margin-bottom: -2px;
+}
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tab-btn:hover { color: var(--body); }
+
+/* Table */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  text-align: left; padding: 10px 12px; background: var(--surface-soft);
+  font-weight: 600; color: var(--mute); border-bottom: 1px solid var(--hairline);
+  font-size: 11px; text-transform: uppercase; letter-spacing: .3px;
+}
+.data-table td {
+  padding: 10px 12px; border-bottom: 1px solid var(--hairline-soft);
+  color: var(--body);
+}
+.data-table tr:hover td { background: var(--surface-soft); }
+
+.priority-badge {
+  padding: 2px 8px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600;
+}
+.p-p0 { background: var(--accent-red-soft); color: var(--accent-red); }
+.p-p1 { background: #fef7e0; color: #e37400; }
+.p-p2 { background: var(--accent-blue-soft); color: var(--accent-blue); }
+
+/* Section spacing */
+.section { margin-bottom: 24px; }
+.section:last-child { margin-bottom: 0; }
+
+.conclusion { font-size: 14px; line-height: 1.8; color: var(--body); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .grid { grid-template-columns: repeat(6, 1fr); }
+  .col-3, .col-4, .col-8 { grid-column: span 6; }
+  .main { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <div>
+    <div class="title">用户反馈分析报告</div>
+    <div class="meta">用户评论.txt · 2026-05-22 14:30</div>
+  </div>
+  <div class="actions">
+    <button class="btn-sm">PNG 导出</button>
+    <button class="btn-sm btn-primary">重新上传</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ===== 1. KPI 卡片行 (4 cards × 3 cols) ===== -->
+  <div class="section grid">
+    <div class="kpi-card kpi-neutral col-3">
+      <div class="kpi-label">总评论数</div>
+      <div class="kpi-value">70</div>
+      <div class="kpi-sub">有效数据行 70 / 70</div>
+    </div>
+    <div class="kpi-card kpi-neutral col-3">
+      <div class="kpi-label">平均评分</div>
+      <div class="kpi-value">3.2</div>
+      <div class="kpi-sub">满分 5.0</div>
+    </div>
+    <div class="kpi-card kpi-good col-3">
+      <div class="kpi-label">口碑概况</div>
+      <div class="kpi-value" style="font-size:22px;">良好</div>
+      <div class="kpi-sub" style="color:var(--accent-green);">稳定性是主要槽点</div>
+    </div>
+    <div class="kpi-card kpi-warn col-3">
+      <div class="kpi-label">告警数量</div>
+      <div class="kpi-value">5</div>
+      <div class="kpi-sub kpi-trend-down">3 冲突 + 2 流失预警</div>
+    </div>
+  </div>
+
+  <!-- ===== 2. 主图表行 (8:4 = 7:3) ===== -->
+  <div class="section grid">
+    <div class="chart-card col-8">
+      <div class="chart-title">评分分布</div>
+      <div class="chart-body">
+        [ Chart.js 柱状图：1★ 12条 | 2★ 18条 | 3★ 10条 | 4★ 15条 | 5★ 15条 ]
+      </div>
+    </div>
+    <div class="chart-card col-4">
+      <div class="chart-title">主观性分析</div>
+      <div class="chart-body">
+        [ Chart.js 环形图：情绪宣泄 38% / 理性反馈 62% ]
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 3. 辅图表行 (4:4:4 = 1:1:1) ===== -->
+  <div class="section grid">
+    <div class="chart-card col-4">
+      <div class="chart-title">态度-目标矩阵</div>
+      <div class="chart-body" style="min-height:160px;">[ 横向柱状图：UI / 性能 / 支付 / 客服 ]</div>
+    </div>
+    <div class="chart-card col-4">
+      <div class="chart-title">情绪分布</div>
+      <div class="chart-body" style="min-height:160px;">
+        <div class="emotion-tags" style="justify-content:center;">
+          <span class="emotion-tag et-red">愤怒 12%</span>
+          <span class="emotion-tag et-red">失望 18%</span>
+          <span class="emotion-tag et-blue">困惑 9%</span>
+          <span class="emotion-tag et-green">满意 25%</span>
+          <span class="emotion-tag et-blue">期待 15%</span>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card col-4">
+      <div class="chart-title">行为意图信号</div>
+      <div class="chart-body" style="min-height:160px;">
+        <div style="font-size:13px;text-align:center;">
+          <div style="margin:4px 0;">卸载/弃用：<strong>8 人</strong> <span style="color:var(--accent-red);">高</span></div>
+          <div style="margin:4px 0;">转投竞品：<strong>3 人</strong> <span style="color:var(--accent-red);">高</span></div>
+          <div style="margin:4px 0;">推荐给朋友：<strong>12 人</strong></div>
+          <div style="margin:4px 0;">等待观望：<strong>15 人</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 4. Tab 表格 ===== -->
+  <div class="section chart-card col-12">
+    <div class="chart-title">数据明细</div>
+    <div class="tab-nav">
+      <button class="tab-btn active">缺陷 Top10</button>
+      <button class="tab-btn">亮点 Top5</button>
+      <button class="tab-btn">功能诉求</button>
+      <button class="tab-btn">冲突案例</button>
+      <button class="tab-btn">流失预警</button>
+      <button class="tab-btn">优先级看板</button>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr><th>优先级</th><th>问题</th><th>模块</th><th>次数</th><th>证据</th><th>排期</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="priority-badge p-p0">P0</span></td>
+          <td>Android 端频繁闪退</td>
+          <td>稳定性</td>
+          <td>23</td>
+          <td>强</td>
+          <td>本周内</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p-p1">P1</span></td>
+          <td>视频加载超过 5 秒</td>
+          <td>性能</td>
+          <td>15</td>
+          <td>强</td>
+          <td>本月内</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p-p2">P2</span></td>
+          <td>缺少深色模式</td>
+          <td>UI</td>
+          <td>8</td>
+          <td>中</td>
+          <td>下季度</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 5. 总结结论 ===== -->
+  <div class="section chart-card col-12">
+    <div class="chart-title">总结结论</div>
+    <div class="conclusion">
+      <strong>产品护城河</strong>：UI 设计被高频称赞，交互流畅度优于同类产品。<br>
+      <strong>致命短板</strong>：Android 端稳定性问题严重，多个用户表示已卸载。<br>
+      <strong>口碑健康度</strong>：中等偏上，若修复闪退问题预计评分可提升至 4.0+。<br>
+      <strong>迭代建议</strong>：P0 修复闪退 → P1 优化加载速度 → P2 新增深色模式。
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

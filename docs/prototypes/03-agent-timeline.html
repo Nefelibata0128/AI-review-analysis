@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 时间线 — AI评论分析平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --font-sans: "Inter", "Noto Sans SC", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --surface: #ffffff;
+  --surface-card: #f8f9fa;
+  --surface-soft: #f1f3f4;
+  --ink: #1a1c1e;
+  --body: #444746;
+  --mute: #757575;
+  --stone: #9aa0a6;
+  --primary: #0050cb;
+  --primary-container: #e8edff;
+  --accent-green: #1e8e3e;
+  --accent-green-soft: #e8f5e9;
+  --accent-red: #c5221f;
+  --accent-red-soft: #fce8e6;
+  --hairline: #dadce0;
+  --hairline-soft: #e8eaed;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--surface-soft);
+  color: var(--ink);
+  display: flex; justify-content: center; align-items: center;
+  min-height: 100vh; padding: 24px;
+}
+.container { width: 100%; max-width: 520px; }
+
+/* Status Bar */
+.status-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px; background: var(--surface);
+  border: 1px solid var(--hairline); border-radius: var(--radius-md);
+  margin-bottom: 16px; font-size: 13px;
+}
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green);
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+/* Timeline */
+.timeline {
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg); padding: 24px;
+  box-shadow: var(--shadow-card);
+}
+.timeline h2 { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+.track { position: relative; padding-left: 32px; }
+.track::before {
+  content: ''; position: absolute; left: 6px; top: 8px; bottom: 8px;
+  width: 2px; background: var(--hairline); border-radius: 1px;
+}
+
+/* Timeline Node */
+.node { position: relative; padding: 8px 0 8px 24px; margin-bottom: 4px; }
+.node::before {
+  content: ''; position: absolute; left: -28px; top: 12px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--stone); border: 2px solid var(--surface);
+  transition: all .3s;
+}
+.node.waiting { color: var(--mute); }
+.node.waiting::before { background: var(--stone); }
+.node.running { color: var(--ink); }
+.node.running::before { background: var(--primary); animation: pulse-dot 1.2s ease-in-out infinite; }
+.node.done { color: var(--ink); }
+.node.done::before { background: var(--accent-green); }
+.node.error { color: var(--accent-red); }
+.node.error::before { background: var(--accent-red); }
+
+.node-header { display: flex; justify-content: space-between; align-items: center; }
+.node-label { font-size: 14px; font-weight: 500; }
+.node-duration { font-size: 12px; color: var(--mute); }
+.node-msg { font-size: 12px; color: var(--mute); margin-top: 2px; }
+
+/* Detail expand */
+.node-detail {
+  display: none; margin-top: 10px; padding: 12px;
+  background: var(--surface-soft); border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-size: 11px; line-height: 1.6;
+  max-height: 200px; overflow-y: auto; white-space: pre-wrap;
+}
+.node-detail.open { display: block; }
+.node.done .node-label { cursor: pointer; color: var(--primary); }
+.node.done .node-label:hover { text-decoration: underline; }
+
+/* Demo controls */
+.controls {
+  margin-top: 24px; display: flex; gap: 8px; justify-content: center;
+}
+.controls button {
+  padding: 8px 18px; border: 1px solid var(--hairline); border-radius: var(--radius-md);
+  background: var(--surface); font-family: var(--font-sans); font-size: 13px;
+  font-weight: 500; cursor: pointer; transition: all .15s; color: var(--body);
+}
+.controls button:hover { background: var(--surface-soft); }
+.controls button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-dot"></span>
+    <span>正在执行 Agent 3/5：五维特征抽取...</span>
+  </div>
+
+  <!-- Agent Timeline -->
+  <div class="timeline">
+    <h2>分析进度</h2>
+    <div class="track">
+      <div class="node done">
+        <div class="node-header">
+          <span class="node-label" onclick="toggleDetail(this)">数据预处理</span>
+          <span class="node-duration">6.2s</span>
+        </div>
+        <div class="node-msg">完成 — 总评论 70 条，均分 3.2</div>
+        <div class="node-detail" data-agent="Preprocessor">
+{ "total_reviews": 70, "avg_rating": 3.21,
+  "rating_distribution": {"5星":15,"4星":15,"3星":10,"2星":18,"1星":12},
+  "user_baselines": {"用户A":3.5,"用户B":2.8} }</div>
+      </div>
+      <div class="node done">
+        <div class="node-header">
+          <span class="node-label" onclick="toggleDetail(this)">主观性过滤</span>
+          <span class="node-duration">9.1s</span>
+        </div>
+        <div class="node-msg">完成 — 高主观 27 条(38.6%)，低主观 43 条(61.4%)</div>
+        <div class="node-detail" data-agent="SubjectivityFilter">
+{ "high_count": 27, "low_count": 43,
+  "high_avg_rating": 2.44, "low_avg_rating": 3.65 }</div>
+      </div>
+      <div class="node running">
+        <div class="node-header">
+          <span class="node-label">五维特征抽取</span>
+          <span class="node-duration">执行中...</span>
+        </div>
+        <div class="node-msg">正在抽取态度-目标矩阵、情绪分布、行为意图...</div>
+      </div>
+      <div class="node waiting">
+        <div class="node-header">
+          <span class="node-label">交叉验证</span>
+        </div>
+        <div class="node-msg">等待中</div>
+      </div>
+      <div class="node waiting">
+        <div class="node-header">
+          <span class="node-label">业务分析与优先级</span>
+        </div>
+        <div class="node-msg">等待中</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo Controls -->
+  <div class="controls">
+    <button onclick="resetDemo()">重置演示</button>
+    <button class="primary" onclick="animateDemo()">运行动画演示</button>
+  </div>
+</div>
+
+<script>
+function toggleDetail(labelEl) {
+  var detail = labelEl.parentElement.nextElementSibling.nextElementSibling;
+  if (detail && detail.classList.contains('node-detail')) {
+    detail.classList.toggle('open');
+  }
+}
+
+var demoRunning = false;
+async function animateDemo() {
+  if (demoRunning) return;
+  demoRunning = true;
+  var nodes = document.querySelectorAll('.node');
+  nodes.forEach(function(n) { n.className = 'node waiting'; });
+  nodes.forEach(function(n) { var d = n.querySelector('.node-duration'); if (d) d.textContent = ''; });
+  document.querySelector('.status-dot').style.background = 'var(--primary)';
+
+  var agents = [
+    { label: '数据预处理', msg: '正在逐条统计评分分布...', dur: '6.2s', ms: 800 },
+    { label: '主观性过滤', msg: '正在逐条判定主观性等级...', dur: '9.1s', ms: 1000 },
+    { label: '五维特征抽取', msg: '正在抽取态度-目标矩阵、情绪分布...', dur: '17.5s', ms: 1200 },
+    { label: '交叉验证', msg: '正在检测评分-文本冲突与流失风险...', dur: '10.3s', ms: 900 },
+    { label: '业务分析与优先级', msg: '正在生成优先级看板与总结结论...', dur: '12.8s', ms: 1000 },
+  ];
+
+  for (var i = 0; i < agents.length; i++) {
+    nodes[i].className = 'node running';
+    nodes[i].querySelector('.node-label').textContent = agents[i].label;
+    nodes[i].querySelector('.node-msg').textContent = agents[i].msg;
+    document.querySelector('.status-bar span:last-child').textContent =
+      '正在执行 Agent ' + (i+1) + '/5：' + agents[i].label + '...';
+    await sleep(agents[i].ms);
+    nodes[i].className = 'node done';
+    nodes[i].querySelector('.node-duration').textContent = agents[i].dur;
+    nodes[i].querySelector('.node-msg').textContent = '完成';
+    nodes[i].querySelector('.node-label').onclick = function() { toggleDetail(this); };
+  }
+  document.querySelector('.status-bar span:last-child').textContent = '分析完成（总计 55.9s）';
+  document.querySelector('.status-dot').style.background = 'var(--accent-green)';
+  demoRunning = false;
+}
+function resetDemo() {
+  var nodes = document.querySelectorAll('.node');
+  var names = ['数据预处理','主观性过滤','五维特征抽取','交叉验证','业务分析与优先级'];
+  nodes.forEach(function(n, i) {
+    n.className = i < 2 ? 'node done' : 'node waiting';
+    n.querySelector('.node-label').textContent = names[i];
+    n.querySelector('.node-msg').textContent = i < 2 ? '完成' : '等待中';
+    var d = n.querySelector('.node-duration');
+    if (d) d.textContent = i === 0 ? '6.2s' : (i === 1 ? '9.1s' : '');
+  });
+  document.querySelector('.status-bar span:last-child').textContent = '正在执行 Agent 3/5：五维特征抽取...';
+  document.querySelector('.status-dot').style.background = 'var(--primary)';
+}
+function sleep(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+</script>
+</body>
+</html>
