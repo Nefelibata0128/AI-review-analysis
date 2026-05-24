@@ -43,7 +43,7 @@ async def send_analysis_notification(
         "msg_type": "interactive",
         "card": {
             "header": {
-                "title": {"content": f"MindFrame — {scene_name}", "tag": "plain_text"},
+                "title": {"content": f"AI评论分析平台 — {scene_name}", "tag": "plain_text"},
                 "template": "blue",
             },
             "elements": [

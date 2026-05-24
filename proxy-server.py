@@ -1,5 +1,5 @@
 """
-MindFrame v3.0 — HTTP 代理服务器
+AI评论分析平台 v3.0 — HTTP 代理服务器
 ├─ 端口 8080，单文件静态服务 (report-dashboard.html)
 ├─ CORS 头自动注入
 ├─ Chrome UA 伪装 (绕过 Cloudflare Bot Detection)
@@ -89,7 +89,7 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         if self.path in ("/", "/index.html"):
             html_path = os.path.join(os.path.dirname(__file__), "report-dashboard.html")
             if not os.path.exists(html_path):
-                self._send(200, b"<h1>MindFrame v3.0</h1><p>report-dashboard.html not found</p>", "text/html; charset=utf-8")
+                self._send(200, b"<h1>AI评论分析平台 v3.0</h1><p>report-dashboard.html not found</p>", "text/html; charset=utf-8")
                 return
             with open(html_path, "r", encoding="utf-8") as f:
                 html = f.read()
@@ -307,7 +307,7 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     server = http.server.HTTPServer(("0.0.0.0", PORT), ProxyHandler)
-    print(f"  MindFrame v3.0")
+    print(f"  AI评论分析平台 v3.0")
     print(f"  本地地址: http://localhost:{PORT}")
     print(f"  API 代理:    /api/* -> {DIFY_BASE}/*")
     print(f"  多Agent分析: /api/orch/run")

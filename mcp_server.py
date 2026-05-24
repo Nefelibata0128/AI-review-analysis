@@ -1,5 +1,5 @@
 """
-MCP Server — MindFrame Analysis Tools
+MCP Server — AI评论分析平台 分析工具
 FastMCP 框架，streamable-http 传输，端口 8081
 
 两个使用场景：
@@ -11,7 +11,7 @@ import re
 from collections import Counter
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("MindFrame Analysis Tools")
+mcp = FastMCP("AI评论分析平台 分析工具")
 
 
 # ============================================================
