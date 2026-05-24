@@ -169,7 +169,6 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
             self.send_error(404)
 
     def do_POST(self):
-        print(f"DEBUG: do_POST path={self.path}", flush=True)
         if self.path.startswith("/api/orch/run"):
             self._handle_orch_run()
         elif self.path.startswith("/api/"):
@@ -223,9 +222,7 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
 
     def _handle_orch_run(self):
         """POST /api/orch/run — 接收双文件上传，启动多 Agent 分析"""
-        print("DEBUG: _handle_orch_run called", flush=True)
         content_type = self.headers.get("Content-Type", "")
-        print(f"DEBUG: content_type={content_type}", flush=True)
 
         try:
             if "multipart/form-data" in content_type:
@@ -267,7 +264,6 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
 
     def _run_analysis_thread(self, review_text: str, bg_text: str, mode: str, event_queue: queue.Queue):
         """后台线程：运行编排器，将事件推送到队列"""
-        print("DEBUG: analysis thread started", flush=True)
         from orchestrator import Orchestrator
 
         orch = Orchestrator()
@@ -275,11 +271,9 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
 
         try:
             orch.run_analysis(review_text, bg_text, mode)
-            print("DEBUG: analysis thread completed OK", flush=True)
         except Exception as e:
             import traceback
             traceback.print_exc()
-            print(f"DEBUG: analysis thread error: {e}", flush=True)
             error_event = {
                 "event": "error",
                 "data": json.dumps({"agent": "Orchestrator", "message": str(e)}, ensure_ascii=False),

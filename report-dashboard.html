@@ -561,22 +561,31 @@ async function run(){
 async function runMulti(reviewText,bgText){
   let mode=scene==='competitor'?'competitor':'feedback';
   await fetch(BASE+'/orch/run?mode='+mode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_text:reviewText,bg_text:bgText})});
-  return new Promise((resolve,reject)=>{
-    let es=new EventSource(BASE+'/orch/events');
-    let connected=false;
-    es.onopen=()=>{connected=true;setStatus(true,'SSE 已连接，等待分析...')};
-    es.addEventListener('agent_started',e=>{let d=JSON.parse(e.data);updTL(d.agent,'run',d.message||'执行中...')});
-    es.addEventListener('agent_completed',e=>{let d=JSON.parse(e.data);updTL(d.agent,'ok','完成',d.duration_ms)});
-    es.addEventListener('workflow_completed',e=>{es.close();let d=JSON.parse(e.data);
-      setStatus(true,'分析完成','done');let out=d.outputs;
-      ['Preprocessor','SubjectivityFilter','FiveDimExtractor','CrossValidator','BusinessAnalyzer'].forEach(k=>{if(out[k])agentResults[k]=out[k]});
-      allData=out;renderAll(out,out.conclusion_markdown||'');resolve(out)});
-    es.onerror=e=>{es.close();
-      let msg=connected?'SSE 连接中断':'无法连接 SSE ('+BASE+'/orch/events)';
-      setStatus(true,msg,'error');toast(msg);reject(new Error(msg))};
-    // 超时保护
-    setTimeout(()=>{if(!connected){es.close();setStatus(true,'SSE 连接超时','error');toast('SSE 连接超时，请检查网络');reject(new Error('SSE timeout'))}},10000);
-  });
+  setStatus(true,'分析已启动，等待数据...');
+  // 使用 fetch 流式读取替代 EventSource（兼容性更好）
+  let resp=await fetch(BASE+'/orch/events');
+  if(!resp.ok)throw new Error('SSE 连接失败: '+resp.status);
+  let reader=resp.body.getReader(),decoder=new TextDecoder(),buf='';
+  while(true){
+    let{done,value}=await reader.read();if(done)break;
+    buf+=decoder.decode(value,{stream:true});
+    let lines=buf.split('\n');buf=lines.pop()||'';
+    for(let l of lines){
+      if(l.startsWith('event: ')){let ev=l.slice(7).trim();let next=lines[lines.indexOf(l)+1];
+        if(next&&next.startsWith('data: ')){
+          try{let d=JSON.parse(next.slice(6));
+            if(ev==='agent_started')updTL(d.agent,'run',d.message||'执行中...');
+            else if(ev==='agent_completed')updTL(d.agent,'ok','完成',d.duration_ms);
+            else if(ev==='workflow_completed'){setStatus(true,'分析完成','done');
+              let out=d.outputs;allData=out;
+              ['Preprocessor','SubjectivityFilter','FiveDimExtractor','CrossValidator','BusinessAnalyzer'].forEach(k=>{if(out[k])agentResults[k]=out[k]});
+              renderAll(out,out.conclusion_markdown||'');return out;}
+            else if(ev==='error'){setStatus(true,d.message||'分析出错','error');throw new Error(d.message);}
+          }catch(e){if(e.message!=='分析出错')continue;throw e}
+        }
+      }
+    }
+  }
 }
 
 function runMultiText(t1,t2){return runMulti(t1,t2)} // 文本走 JSON
@@ -584,16 +593,28 @@ function runMultiText(t1,t2){return runMulti(t1,t2)} // 文本走 JSON
 async function runMultiFD(fd){
   let mode=scene==='competitor'?'competitor':'feedback';
   await fetch(BASE+'/orch/run?mode='+mode,{method:'POST',body:fd});
-  return new Promise((resolve,reject)=>{
-    let es=new EventSource(BASE+'/orch/events');
-    es.addEventListener('agent_started',e=>{let d=JSON.parse(e.data);updTL(d.agent,'run',d.message||'执行中...')});
-    es.addEventListener('agent_completed',e=>{let d=JSON.parse(e.data);updTL(d.agent,'ok','完成',d.duration_ms)});
-    es.addEventListener('workflow_completed',e=>{es.close();let d=JSON.parse(e.data);
-      setStatus(true,'分析完成','done');let out=d.outputs;
-      ['Preprocessor','SubjectivityFilter','FiveDimExtractor','CrossValidator','BusinessAnalyzer'].forEach(k=>{if(out[k])agentResults[k]=out[k]});
-      allData=out;renderAll(out,out.conclusion_markdown||'');resolve(out)});
-    es.addEventListener('error',e=>{es.close();updTL(e.data?JSON.parse(e.data).agent:'','err',e.data?JSON.parse(e.data).message:'出错');reject(new Error('分析出错'))});
-  });
+  setStatus(true,'分析已启动，等待数据...');
+  let resp=await fetch(BASE+'/orch/events');if(!resp.ok)throw new Error('SSE 连接失败: '+resp.status);
+  let reader=resp.body.getReader(),decoder=new TextDecoder(),buf='';
+  while(true){
+    let{done,value}=await reader.read();if(done)break;
+    buf+=decoder.decode(value,{stream:true});
+    let lines=buf.split('\n');buf=lines.pop()||'';
+    for(let l of lines){
+      if(l.startsWith('event: ')){let ev=l.slice(7).trim(),next=lines[lines.indexOf(l)+1];
+        if(next&&next.startsWith('data: ')){
+          try{let d=JSON.parse(next.slice(6));
+            if(ev==='agent_started')updTL(d.agent,'run',d.message||'执行中...');
+            else if(ev==='agent_completed')updTL(d.agent,'ok','完成',d.duration_ms);
+            else if(ev==='workflow_completed'){setStatus(true,'分析完成','done');let out=d.outputs;allData=out;
+              ['Preprocessor','SubjectivityFilter','FiveDimExtractor','CrossValidator','BusinessAnalyzer'].forEach(k=>{if(out[k])agentResults[k]=out[k]});
+              renderAll(out,out.conclusion_markdown||'');return out;}
+            else if(ev==='error'){setStatus(true,d.message||'分析出错','error');throw new Error(d.message);}
+          }catch(e){if(e.message!=='分析出错')continue;throw e}
+        }
+      }
+    }
+  }
 }
 
 async function upFile(file,user){let fd=new FormData();fd.append('file',file);fd.append('user',user);let r=await fetch(BASE+'/files/upload',{method:'POST',body:fd});if(!r.ok)throw new Error('上传失败');return(await r.json()).id}
