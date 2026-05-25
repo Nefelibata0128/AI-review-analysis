@@ -36,7 +36,7 @@ if os.path.exists(_env_path):
                 _k, _v = _line.split("=", 1)
                 os.environ.setdefault(_k.strip(), _v.strip())
 
-PORT = 5000
+PORT = 5050
 DIFY_BASE = "https://api.dify.ai/v1"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
 
@@ -249,21 +249,18 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
                 return
 
             # 在后台线程中运行分析，结果通过 SSE 事件队列推送
-            event_queue = queue.Queue()
-            self.server.pending_events = event_queue
             self.server.analysis_running = True
 
-            thread = threading.Thread(
-                target=self._run_analysis_thread,
-                args=(review_text, bg_text, mode, event_queue, self.server),
-                daemon=True,
-            )
-            thread.start()
-
-            self._send(200, json.dumps({
-                "status": "started",
-                "message": "分析已启动，请连接 /api/orch/events 获取进度",
-            }).encode(), "application/json")
+            # 直接同步运行分析，结果在响应中返回
+            from orchestrator import Orchestrator
+            orch = Orchestrator()
+            try:
+                result = orch.run_analysis(review_text, bg_text, mode)
+                self.server.analysis_running = False
+                self._send(200, json.dumps({"status": "succeeded", "outputs": result}, ensure_ascii=False).encode("utf-8"), "application/json")
+            except Exception as e:
+                self.server.analysis_running = False
+                self._send(500, json.dumps({"status": "error", "message": str(e)}).encode(), "application/json")
 
         except Exception as e:
             self._send(500, json.dumps({"error": str(e)}).encode(), "application/json")
